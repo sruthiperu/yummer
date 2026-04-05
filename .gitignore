@@ -1,0 +1,35 @@
+# secrets
+.env
+.env.local
+.env.*.local
+
+# backend
+*.py[cod]
+*.pyo
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+.mypy_cache/
+backend/alembic/versions/*.pyc
+
+# frontend
+node_modules/
+.next/
+frontend/.next/
+frontend/node_modules/
+npm-debug.log*
+
+.venv/
+venv/
+
+postgres_data/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp

@@ -1,0 +1,50 @@
+services:  
+  # database
+  db:   # ensure we can run postgresql locally
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_DB: recipeapp
+      POSTGRES_USER: recipeapp
+      POSTGRES_PASSWORD: recipeapp
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:  # check if database is ready to receive connections
+      test: ["CMD-SHELL", "pg_isready -U recipeapp"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql://recipeapp:recipeapp@db:5432/recipeapp
+      # ANTHROPIC_API_KEY: key    -> fill in later
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      JWT_SECRET: ${JWT_SECRET}
+    volumes:
+      - ./backend:/app
+    depends_on:
+      db:
+        condition: service_healthy
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:3000"
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8000/api/v1
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      - backend
+    command: npm run dev
+
+volumes:
+  postgres_data:
