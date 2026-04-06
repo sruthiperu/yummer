@@ -22,7 +22,7 @@ services:
       - "8000:8000"
     environment:
       DATABASE_URL: postgresql://recipeapp:recipeapp@db:5432/recipeapp
-      # ANTHROPIC_API_KEY: key    -> fill in later
+      # add AI API key
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
       JWT_SECRET: ${JWT_SECRET}

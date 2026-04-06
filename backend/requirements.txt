@@ -1,8 +1,8 @@
-# Web framework
+# web
 fastapi==0.115.0
 uvicorn[standard]==0.30.6
 
-# datavase
+# database
 sqlalchemy==2.0.35
 alembic==1.13.3
 psycopg2-binary==2.9.9
@@ -21,3 +21,4 @@ langdetect==1.0.9
 
 python-dotenv==1.0.1
 python-multipart==0.0.12
+pydantic-settings==2.5.2
