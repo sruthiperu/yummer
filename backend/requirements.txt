@@ -21,6 +21,7 @@ pydantic-settings==2.5.2
 pandas==2.2.3
 spacy==3.7.6
 langdetect==1.0.9
+ingredient-parser-nlp==2.0.0
 
 python-dotenv==1.0.1
 python-multipart==0.0.12
