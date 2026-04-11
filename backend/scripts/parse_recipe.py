@@ -1,14 +1,17 @@
 # Takes one recipe (row) from final_dataset.csv and parses it into a dict (for database)
 
 import ast      
-import re
+import pandas as pd
 import hashlib
 from ingredient_parser import parse_ingredient
 from datetime import datetime
 
 
-# given: string; return list
 def convert_str_to_list(s):
+    """ 
+    given: string; return list
+    """
+
     try:
         lst = ast.literal_eval(s)   # "['milk', 'eggs']" -> ['milk', 'eggs']
         if isinstance(lst, list):
@@ -25,8 +28,11 @@ def parse_time(t):
     except:
         return None
     
-# returns only quantity of ingredient (e.g. returns "2" given "2 eggs")
 def get_quantity(text):
+    """ 
+    get quantity of ingredient (e.g. "2" given "2 eggs")
+    """
+
     try:
         res = parse_ingredient(text)
         quantity, unit = None, None
@@ -38,12 +44,19 @@ def get_quantity(text):
         if res.name:
             ingredient = res.name[0].text
         
-        return quantity, unit, ingredient
+        size = None
+        if res.size:
+            size = res.size.text
+        
+        return quantity, unit, size, ingredient
     except:
-        return None, None, text
+        return None, None, None, text
 
-# given: list; returns dict
 def parse_nutrition(info):
+    """ 
+    given: list; returns dict
+    """
+
     try:
         vals = convert_str_to_list(info)
         if not vals or len(vals) < 7:
@@ -54,21 +67,28 @@ def parse_nutrition(info):
     except:
         return None
     
-# given: string; returns datetime obj
+
 def parse_date(date):
+    """
+    given: string; returns datetime obj
+    """
+
     try:
         return datetime.strptime(str(date), "%m-%d-%Y")
     except:
         return None
 
 
-# parse entire row
-# given: list; return dict
 def parse_row(row):
+    """
+    parse recipe (1 row in csv file)
+    given: list; return dict
+    """
+
     name = row['name']
     
     # parse ingredients
-    foodcom_ingredients = convert_str_to_list(row['foodcom_ingredients'])
+    # foodcom_ingredients = convert_str_to_list(row['foodcom_ingredients'])
     recipenlg_ingredients = convert_str_to_list(row['recipenlg_ingredients'])
     
     # parse directions into list of dicts
@@ -95,10 +115,55 @@ def parse_row(row):
                    'date': date, 'link': row['link']}
     
 
-    # ingredients are in the same order in Food.com and RecipeNLG
     ingredients_data = []
-    for foodcom_text, recipenlg_text in zip(foodcom_ingredients, recipenlg_ingredients):
-        quantity, unit, _ = get_quantity(recipenlg_text)
-        ingredients_data.append({'text': recipenlg_text, 'quantity': quantity, 'unit': unit, 'ingredient': foodcom_text.strip()})
-    
+    for text in recipenlg_ingredients:
+        if not text:
+            continue
+
+        quantity, unit, size, ing_name = get_quantity(text)
+
+        if not ing_name: ing_name = text      # use original text when needed
+        
+        ingredients_data.append({'text': text, 'quantity': quantity, 'unit': unit, 'size': size, 'ingredient': ing_name})
+
+
     return recipe_data, ingredients_data
+
+
+if __name__ == "__main__":
+    csv_path = "/Users/sruthiperumalla/Desktop/yummer/backend/data/final_dataset.csv"
+    print(f"Loading CSV from: {csv_path}")
+    df = pd.read_csv(csv_path)
+    print(f"Total recipes: {len(df)}")
+    
+    none_count, total_ingredients_checked = 0, 0
+    recipes_with_none = []
+
+    
+    for idx, row in df.iterrows():
+        name = row['name']
+        
+        recipenlg_ingredients = convert_str_to_list(row['recipenlg_ingredients'])
+        
+        # check each ingredient
+        for i, recipenlg_text in enumerate(recipenlg_ingredients):
+            total_ingredients_checked += 1
+            
+            # Check for None values
+            if recipenlg_text is None:
+                none_count += 1
+                recipes_with_none.append({'row': idx, 'recipe': name, 'ingredient_index': i, 'recipenlg': recipenlg_text})
+    
+    print("\n" + "="*60)
+    print("SCAN RESULTS")
+    print("="*60)
+    print(f"Rows scanned: {len(df)}")
+    print(f"Total ingredient positions checked: {total_ingredients_checked}")
+    print(f"Total None values found: {none_count}")
+    
+    if recipes_with_none:
+        print(f"\nFirst 20 None values:")
+        print("-"*60)
+        for item in recipes_with_none[:20]:
+            print(f"Row {item['row']}: '{item['recipe']}' - Ingredient {item['ingredient_index']}")
+            print(f"   recipenlg: {item['recipenlg']}\n")
