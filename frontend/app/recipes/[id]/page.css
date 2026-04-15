@@ -1,0 +1,198 @@
+/* basic styling for now */
+
+.styles {
+    max-width: 720px;       /* max-width: 100%; */
+    margin: 0 auto;
+    padding: 24px;
+}
+
+/* header */
+.recipe_title {
+    margin: 20px 0 12px 0;
+    font-size: 22px;
+    font-weight: 600;
+}
+/* recipe info */
+.data_row {
+    display: flex;
+    margin: 8px 0;
+    gap: 16px;
+    color: rgb(68, 67, 67);
+}
+.total_time, .view_original {
+    color: rgb(200, 200, 200);
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+.view_original:hover {
+    color: white;
+}
+
+/* tags */
+.tags {
+    display: flex;
+    flex-wrap: wrap;
+    margin: 8px 0;
+    gap: 8px;
+}
+.tag {
+    background: rgb(185, 185, 185);
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: 14px;
+    color: rgb(52, 52, 52)
+}
+
+/* description */
+.description {
+    margin-top: 12px;
+    color: rgb(62, 62, 62);
+}
+
+/* nutrition */
+.nutrition_layout {
+    display: flex;
+    flex-wrap: wrap;
+    margin: 16px 0;
+    gap: 16px;
+}
+
+.nutrition_card {
+    background: rgb(185, 185, 185);
+    border-radius: 8px;
+    padding: 8px 16px;
+    min-width: 70px;
+    text-align: center;
+}
+
+.nutrition_val {
+    font-size: 18px;
+    font-weight: 600;
+    color: rgb(52, 52, 52);
+}
+
+.nutrition_label {
+    font-size: 14px;
+    color: rgb(54, 53, 53);
+    font-weight: 500;
+}
+
+/* chatbox */
+.chatbox {
+    margin: 24px 0;
+    border-radius: 12px;
+    padding: 16px;
+    background: rgb(210, 210, 210);
+    cursor: pointer;
+}
+.chatbox:hover {
+    background: rgb(255, 255, 255);
+}
+.chatbox_title {
+    margin-bottom: 4px;
+    font-size: 18px;
+    font-weight: 600;
+    color: black;
+}
+.chatbox_subtitle {
+    margin-bottom: 8px;
+    color: rgb(68, 67, 67);
+    font-size: 13px;
+}
+.user_input {
+    display: flex;
+    gap: 8px;
+    align-items: flex-end;
+    color: black;
+}
+.chatbox_input {
+    flex: 1;
+    resize: none;
+    overflow-y: hidden;
+    min-height: 42px;
+    max-height: 120px;
+    padding: 10px 16px;
+    border: 1px solid rgb(148, 148, 148);
+    border-radius: 24px;
+    font-size: 14px;
+    font-family: inherit;
+}
+.change_btn {
+    padding: 10px 20px;
+    background: rgb(74, 74, 74);
+    color: white;
+    border: none;
+    border-radius: 24px;
+    cursor: pointer;
+    white-space: nowrap;
+    height: 42px;
+}
+.change_btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+.success_msg {
+    display: flex;
+    align-items: center;
+    margin-top: 12px;
+    gap: 12px;
+    font-size: 13px;
+}
+.error_msg {
+    color: rgb(200, 0, 0);
+    margin-top: 8px;
+    font-size: 13px;
+}
+.restore_btn {
+    background: none;
+    border: none;
+    color: rgb(62, 62, 62);
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+/* ingredients */
+.ingredients_list {
+    list-style: none;
+    padding: 0;
+}
+.ingredient_name {
+    display: flex;
+    gap: 12px;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(148, 148, 148, 0.7);
+}
+.ingredient_quantity {
+    color: rgb(164, 164, 164);
+    min-width: 80px;
+}
+
+/* directions */
+.directions_list {
+    list-style: none;
+    padding: 0;
+}
+.direction {
+    display: flex;
+    margin-bottom: 16px;
+    gap: 16px;
+}
+.step_num {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgb(148, 148, 148);
+    color: black;
+    min-width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.section_title, .ingredients_title, .directions_title {
+    margin: 20px 0 12px 0;
+    font-size: 20px;
+    font-weight: 600;
+}
