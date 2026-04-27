@@ -2,10 +2,19 @@ import {Recipe} from "@/types/recipe"
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL
 
+// define user type
+export type User = {
+  id: number
+  name: string
+  email: string
+  dietary_restrictions?: any
+  allergens?: string[]
+}
+
 // fetch wrapper
 async function fetchJSON<T>(url: string, options?: RequestInit): Promise<T> {
   const response = await fetch(url, {
-    ...options,
+    ...options, credentials: "include", 
     headers: {"Content-Type": "application/json", ...options?.headers,},
   })
 
@@ -48,7 +57,7 @@ export async function removeFavorite(recipeId: number) {
 }
 
 // user profile
-export async function getMe() {
+export async function getMe(): Promise<User>{
   return fetchJSON(`${API_URL}/users/me`)
 }
 export async function updateMe(data: { dietary_restrictions?: any; allergens?: string[] }) {

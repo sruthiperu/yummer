@@ -1,0 +1,57 @@
+/* navigation bar */
+
+.nav_bar {
+    display: flex;
+    align-items: center;
+    padding: 12px 24px;
+    gap: 16px;
+    background: white;
+    border-bottom: 1px solid rgb(230, 230, 230);
+}
+
+.nav_link {
+    font-size: 14px;
+    color: rgb(210, 194, 255);
+    text-decoration: none;
+}
+
+.nav_link:hover {
+    color: rgb(89, 28, 255);
+}
+
+.nav_right {
+    display: flex;
+    align-items: center;
+    margin-left: auto;
+    gap: 16px;
+}
+
+.user_name {
+    color: rgb(64, 64, 64);
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.sign_out {
+    font-size: 14px;
+    color: rgba(245, 134, 70, 0.9);
+    text-decoration: none;
+}
+
+.sign_out:hover {
+    text-decoration: underline;
+}
+
+.sign_in {
+    text-decoration: none;
+    background: rgb(15, 196, 85);
+    color: white;
+    padding: 6px 16px;
+    border-radius: 24px;
+    font-size: 14px;
+    transition: background 0.2s;
+}
+
+.sign-in:hover {
+    background: rgb(11, 77, 36);
+}

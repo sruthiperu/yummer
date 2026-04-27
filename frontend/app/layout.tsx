@@ -1,24 +1,13 @@
-/*
+// Wraps app
+
 "use client"
 
-import {QueryClient, QueryClientProvider} from "@tanstack/react-query"
-import {useState} from "react"
+import {Providers} from "./providers"
+import {useMe} from "@/lib/useMe"
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
-  const [queryClient] = useState(() => new QueryClient())
-
-  return (
-    <html lang="en">
-      <body>
-        <QueryClientProvider client={queryClient}>
-          {children}
-        </QueryClientProvider>
-      </body>
-    </html>
-  )
-} */
-import { Providers } from "./providers"
 import "./globals.css"
+import "./nav.css"    // for navigation bar
+
 
 export default function RootLayout({
   children,
@@ -28,8 +17,37 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <Providers>{children}</Providers>
+        <Providers><Nav />{children}</Providers>
       </body>
     </html>
+  )
+}
+
+function Nav() {
+  const {data: user, isLoading} = useMe()
+  const API_URL = process.env.NEXT_PUBLIC_API_URL?.replace("/api/v1", "")
+
+  return (
+    <nav className="nav_bar">
+      {/* add logo? */}
+      <a href="/" className="nav_link">Search</a>
+      
+      <div className="nav_right">
+        {isLoading ? null : user ? (
+          // when logged in
+          <>
+            <span className="user_name">{user.name}</span>
+            <a href={`${API_URL}/api/v1/auth/logout`} className="sign-out">
+              Sign out
+            </a>
+          </>
+        ):(
+          // when logged out
+          <a href={`${API_URL}/api/v1/auth/google`} className="sign-in">
+            Sign in with Google
+          </a>
+        )}
+      </div>
+    </nav>
   )
 }
