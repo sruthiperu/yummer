@@ -1,6 +1,6 @@
 from app.database import Base
 from sqlalchemy import Column, String, Integer, Boolean, ARRAY, DateTime, ForeignKey
-from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.dialects.postgresql import JSONB, TSVECTOR
 
 
 # each model needs Base (database), Column (database columns), data types, 
@@ -25,6 +25,8 @@ class Recipe(Base):
     date = Column(DateTime, nullable=True)
     image = Column(String, nullable=True)                   # extract from recipe_link source
     link = Column(String, nullable=True)             
+
+    search_vector = Column(TSVECTOR, nullable=True)
 
 
 # ingredient table
