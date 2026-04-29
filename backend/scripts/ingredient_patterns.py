@@ -9,7 +9,7 @@ patterns = [
 
     # eggs
     (r'\b(duck|quail|ostrich)\s*eggs?\b', r'\1 egg'),
-    (r'\b(organic|pasture[- ]?raised|cage[- ]?free|free[- ]?range|farm[- ]?fresh|brown|white|vegetarian[- ]?fed)?\s*egg\b', 'egg'),
+    (r'\b(large|medium|small|organic|pasture[- ]?raised|cage[- ]?free|free[- ]?range|farm[- ]?fresh|brown|white|vegetarian[- ]?fed)?\s*eggs?\b', 'egg'),
 
     # flour
     (r'\b(all[- ]?purpose|plain|white|unbleached|enriched|self[- ]?rising|self[- ]?raising|ap)?\s*flour\b', 'flour'),
@@ -50,7 +50,7 @@ patterns = [
     (r'\b(strawberry|blueberry|raspberry|blackberry|cranberry)\s*berries?\b', r'\1'),
 
     # meat
-    (r'\b(boneless|skinless|fresh|frozen|organic|cooked|raw|chopped|sliced|diced)?\s*chicken\s*(breast|thigh)?\b', 'chicken'),
+    (r'\b(?:(?:boneless|skinless|fresh|frozen|organic|cooked|raw|chopped|sliced|diced)\s+)*chicken\s*(?:breast|thigh)?s?\b', 'chicken'),
     (r'\b(lean|extra|lean|organic|grass-fed|fresh|frozen|cooked|raw)?\s*(ground|minced)?\s*beef\b', 'beef'),
     (r'\b(beef|ribeye|sirloin|tenderloin)\s*steak\b', 'beef'),
     (r'\b(lean|extra-lean|fresh|frozen|cooked)?\s*(ground|minced)\s*(turkey|pork|lamb|chicken)\b', r'\3'),
@@ -107,6 +107,7 @@ patterns = [
     (r'\b(table|sea|himalayan|pink|kosher)\s*salt\b', 'salt'),
     (r'\b(red|green|black|white)\s*pepper\b', r'\1 pepper'),
     (r'\b(oregano|thyme|rosemary|basil|parsley|cilantro|dill|mint|sage|bay)\s*(leaves?)?\b', r'\1'),
+    (r'\b(dried|fresh|ground|whole)\s+(\w+)\b', r'\2'),
 ]
 
 
