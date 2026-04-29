@@ -13,8 +13,18 @@ def normalize_ingredient(name):
     name = name.lower().strip()
     for pattern, canonical in patterns:
         name = (re.sub(pattern, canonical, name)).strip()
+
+    # make plural ingredients singular
+    if name.endswith("ves"):        # "leaves" -> "leaf"
+        name = name[:-3] + "f"      
+    elif name.endswith("ies"):      # "strawberries" -> "strawberry"
+        name = name[:-3] + "y"     
+    elif name.endswith("es") and len(name) > 4:     # "tomatoes" -> "tomato" 
+        name = name[:-2]          
+    elif name.endswith("s") and len(name) > 3 and not name.endswith(('ss', 'us', 'is')):        # "eggs" -> "egg", "asparagus" -> "asparagus"
+        name = name[:-1]         
     
-    return name
+    return name.strip()
 
 
 def get_flags(name):

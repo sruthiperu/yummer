@@ -79,4 +79,7 @@ def search_by_ingredients(db: Session, ingredient_names: list[str], page: int = 
     results = results.fetchall()
     
     return results
+
+
+
     

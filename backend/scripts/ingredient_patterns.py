@@ -50,14 +50,14 @@ patterns = [
     (r'\b(strawberry|blueberry|raspberry|blackberry|cranberry)\s*berries?\b', r'\1'),
 
     # meat
-    (r'\b(boneless|skinless)?\s*chicken\s*breast\b', 'chicken breast'),
-    (r'\b(boneless|skinless)?\s*chicken\s*thigh\b', 'chicken thigh'),
-    (r'\b(boneless|skinless)?\s*chicken\b', 'chicken'),
-    (r'\b(lean)?\s*(ground|minced)\s*beef\b', 'ground beef'),
-    (r'\b(ground|minced)\s*(turkey|pork|lamb|chicken)\b', r'ground \2'),
-    (r'\b(beef|ribeye|sirloin|tenderloin)\s*steak\b', 'beef steak'),
-    (r'\b(pork|boston)\s*shoulder\b', 'pork shoulder'),
-
+    (r'\b(boneless|skinless|fresh|frozen|organic|cooked|raw|chopped|sliced|diced)?\s*chicken\s*(breast|thigh)?\b', 'chicken'),
+    (r'\b(lean|extra|lean|organic|grass-fed|fresh|frozen|cooked|raw)?\s*(ground|minced)?\s*beef\b', 'beef'),
+    (r'\b(beef|ribeye|sirloin|tenderloin)\s*steak\b', 'beef'),
+    (r'\b(lean|extra-lean|fresh|frozen|cooked)?\s*(ground|minced)\s*(turkey|pork|lamb|chicken)\b', r'\3'),
+    (r'\b(fresh|frozen|organic|boneless)?\s*(pork|boston)\s*shoulder\b', 'pork'),
+    (r'\b(center-cut|bone-in|boneless|thick-cut|thin-cut)?\s*pork\s*chop\b', 'pork'),
+    (r'\b(fresh|frozen|organic|grass-fed)?\s*(ground|leg|leg[- ]?of|chop)?\s*lamb\b', 'lamb'),
+    
     # broth, stock
     (r'\b(chicken|beef|vegetable|fish|bone)\s*(broth|stock)\b', r'\1 broth'),
 
