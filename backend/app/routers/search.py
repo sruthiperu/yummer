@@ -3,7 +3,8 @@ from sqlalchemy.orm import Session
 from typing import Optional
 
 from app.database import get_db
-from scripts.search import search_recipes, search_by_ingredients
+from scripts.search import search_recipes, search_by_ingredients as search_ings
+from scripts.clean_input import clean_query, clean_ingredients
 
 
 router = APIRouter(prefix="/search", tags=["search"])
@@ -23,35 +24,51 @@ def search(
     max_calories: Optional[int] = None,
     db: Session = Depends(get_db)):
 
+    clean_query_res = clean_query(q)
+    print(f"DEBUG: q={q}, clean_query_res={clean_query_res}")  # DEBUGGGGGGGGG
+
+    if not clean_query_res:
+        return {"results": [], "total": 0, "empty_reason": "bad_input", "suggestions": ["Enter at least two characters to search"]}
+    
     filters = {"vegan": is_vegan, "vegetarian": is_vegetarian, "gluten_free": is_gluten_free, "max_time": max_time, 
                "min_calories": min_calories, "max_calories": max_calories}
 
-    results, total = search_recipes(db, q, filters, page, limit)
+    results, total, empty_reason = search_recipes(db, clean_query_res, filters, page, limit)
 
-    return {     
-        "results": [{"id": recipe.id, "name": recipe.name, "total_time": recipe.total_time, "nutrition": recipe.nutrition,
-                     "tags": recipe.tags, "link": recipe.link, "match_score": round(float(rank), 4),
-                    } for recipe, rank in results
-        ], "total": total, "page": page, "limit": limit}
+    res = []
+    for recipe, rank in results:
+        res_dict = {"id": recipe.id, "name": recipe.name, "total_time": recipe.total_time, "nutrition": recipe.nutrition,
+                     "tags": recipe.tags, "link": recipe.link, "match_score": round(float(rank), 4)}
+        res.append(res_dict)
+
+    return {"results": res, "total": total, "page": page, "limit": limit, "empty_reason": empty_reason}
 
 
 # find recipes with ingredients in ingredients list
 @router.get("/by-ingredients")
-def search_by_ingredients_endpoint(
+def search_by_ingredients(
     ingredients: str = Query(..., description="Comma separated ingredient list"),
     page: int = Query(1, ge=1),
     limit: int = Query(20, ge=1, le=50),
+    is_vegan: bool = False,
+    is_vegetarian: bool = False,
+    is_gluten_free: bool = False,
+    max_time: Optional[int] = None,
     db: Session = Depends(get_db)):
 
-    ingredient_list = [i.strip() for i in ingredients.split(",") if i.strip()]
 
-    if not ingredient_list: return {"results": [], "total": 0, "page": page}
+    ing_list = clean_ingredients(ingredients)
 
-    # results = search_by_ingredients(db, ingredient_list, page, limit)
-    results, total = search_by_ingredients(db, ingredient_list, page, limit)
+    if not ing_list: 
+        return {"results": [], "total": 0, "empty_reason": "bad_input", "suggestions": ["Enter at least one ingredient name"]}
 
-    return {"results": [{"id": r["id"], "name": r["name"], "total_time": r["total_time"], "nutrition": r["nutrition"], 
-                         "tags": r["tags"], "link": r["link"], "matched_count": r["matched_count"], "total_ingredients": r["total_ingredients"],
-                         "user_match_pct": r["user_match_pct"], "recipe_match_pct": r["recipe_match_pct"], "missing_ingredients": r["missing_ingredients"],
-                         } for r in results
-                         ], "total": total, "page": page}
+    filters = {"vegan": is_vegan, "vegetarian": is_vegetarian, "gluten_free": is_gluten_free, "max_time": max_time}
+    results, total = search_ings(db, ing_list, filters, page, limit)
+
+
+    if total == 0:
+        return {"results": [], "total": 0, "searched_ings": ing_list, "empty_reason": "no_matches",
+                "suggestions": ["Try fewer ingredients", "Check spelling — use simple names like 'chicken' not 'chicken breast'"]}
+    else:
+        return {"results": results, "total": total, "page": page, "limit": limit, "searched_ings": ing_list, "empty_reason": None}
+

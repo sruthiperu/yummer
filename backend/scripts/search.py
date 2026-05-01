@@ -5,7 +5,22 @@ from app.models.recipe import Recipe, RecipeIngredient, Ingredient
 from scripts.normalize_ingredients import normalize_ingredient
 
 
-def search_recipes(db: Session, query: str, filters: dict, page: int = 1, limit: int = 20):
+def search_recipes(db, query, filters, page=1, limit=20):
+    results, total = _search(db, query, filters, page, limit)
+
+    if total == 0:
+        # search with no filters
+        results_no_filters, total_no_filters = _search(db, query, {}, page, limit)
+
+        if total_no_filters > 0:
+            return [], 0, "filters_too_strict"
+        else:
+            return [], 0, "no_matches"
+        
+    return results, total, None
+
+
+def _search(db: Session, query: str, filters: dict, page: int = 1, limit: int = 20):
     offset = (page - 1) * limit     # limit: per 20 recipes
 
     base = db.query(Recipe, 
@@ -16,18 +31,18 @@ def search_recipes(db: Session, query: str, filters: dict, page: int = 1, limit:
 
 
     # apply filters
-    if filters.get("time"):
-        base = base.filter(Recipe.total_time <= filters["time"])
+    if filters.get("max_time"):
+        base = base.filter(Recipe.total_time <= filters["max_time"])
     if filters.get("max_calories"):
         base = base.filter(Recipe.nutrition["calories"].astext.cast(float) <= filters["max_calories"])
     if filters.get("min_calories"):
         base = base.filter(Recipe.nutrition["calories"].astext.cast(float) >= filters["min_calories"])
 
-    if filters.get("is_vegan"):
-        base = base.filter(Recipe.tags.contains(["is_vegan"]))
-    if filters.get("is_vegetarian"):
-        base = base.filter(Recipe.tags.contains(["is_vegetarian"]))
-    if filters.get("is_gluten_free"):
+    if filters.get("vegan"):
+        base = base.filter(Recipe.tags.contains(["vegan"]))
+    if filters.get("vegetarian"):
+        base = base.filter(Recipe.tags.contains(["vegetarian"]))
+    if filters.get("gluten_free"):
         base = base.filter(or_(Recipe.tags.contains(["gluten-free"]), Recipe.tags.contains(["is_gluten_free"])))
 
     # sort by rank
@@ -38,7 +53,7 @@ def search_recipes(db: Session, query: str, filters: dict, page: int = 1, limit:
     return results, total
 
 
-def search_by_ingredients(db: Session, ing_names: list[str], page: int = 1, limit: int = 20):
+def search_by_ingredients(db: Session, ing_names: list[str], filters: dict = None, page: int = 1, limit: int = 20):
     offset = (page - 1) * limit
 
     # normalize ingredients
@@ -161,3 +176,16 @@ def get_missing_ingredients(db: Session, recipe_id: int, matched_ing_ids: list[i
 
     # return [row.name for row in missing]
     return [row._mapping["name"] for row in missing]
+
+
+# Give user suggestions if their input isn't accepted
+def build_empty_result(reason: str):
+    return {"results": [], "total": 0, "reason": reason, "suggestions": get_suggestion(reason)}
+
+def get_suggestion(reason: str):
+    suggestions = {
+        "no_matches": ["Try fewer ingredients", "Check for spelling mistakes", "Try a broader search term"],
+        "bad_input": ["Enter at least one ingredient", "Use common ingredient names like 'chicken' or 'pasta'"],
+        "filters_too_strict": ["Try removing some filters", "Increase the maximum cook time", "Try a different dietary filter"],
+    }
+    return suggestions.get(reason, [])
