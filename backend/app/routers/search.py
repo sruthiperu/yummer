@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from typing import Optional
 
 from app.database import get_db
-from scripts.search import search_recipes, search_by_ingredients as search_ings
+from scripts.search import SortRecs, search_recipes, search_by_ingredients as search_ings
 from scripts.clean_input import clean_query, clean_ingredients
 
 
@@ -14,6 +14,7 @@ router = APIRouter(prefix="/search", tags=["search"])
 @router.get("")
 def search(
     q: str = Query(..., min_length=1, description="Search query"),
+    sort: SortRecs = SortRecs.relevance,
     page: int = Query(1, ge=1),
     limit: int = Query(20, ge=1, le=50),
     is_vegan: bool = False,
@@ -33,7 +34,7 @@ def search(
     filters = {"vegan": is_vegan, "vegetarian": is_vegetarian, "gluten_free": is_gluten_free, "max_time": max_time, 
                "min_calories": min_calories, "max_calories": max_calories}
 
-    results, total, empty_reason = search_recipes(db, clean_query_res, filters, page, limit)
+    results, total, empty_reason = search_recipes(db, clean_query_res, filters, page, limit, sort=sort)
 
     res = []
     for recipe, rank in results:

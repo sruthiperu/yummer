@@ -1,16 +1,18 @@
 from sqlalchemy.orm import Session
-from sqlalchemy import text, func, or_
+from sqlalchemy import text, func, or_, Float
 
 from app.models.recipe import Recipe, RecipeIngredient, Ingredient
 from scripts.normalize_ingredients import normalize_ingredient
 
+from enum import Enum    
 
-def search_recipes(db, query, filters, page=1, limit=20):
-    results, total = _search(db, query, filters, page, limit)
+
+def search_recipes(db, query, filters, page=1, limit=20, sort="relevance"):
+    results, total = _search(db, query, filters, page, limit, sort)
 
     if total == 0:
         # search with no filters
-        results_no_filters, total_no_filters = _search(db, query, {}, page, limit)
+        results_no_filters, total_no_filters = _search(db, query, {}, page, limit, sort)
 
         if total_no_filters > 0:
             return [], 0, "filters_too_strict"
@@ -20,7 +22,7 @@ def search_recipes(db, query, filters, page=1, limit=20):
     return results, total, None
 
 
-def _search(db: Session, query: str, filters: dict, page: int = 1, limit: int = 20):
+def _search(db: Session, query: str, filters: dict, page: int = 1, limit: int = 20, sort="relevance"):
     offset = (page - 1) * limit     # limit: per 20 recipes
 
     base = db.query(Recipe, 
@@ -34,9 +36,9 @@ def _search(db: Session, query: str, filters: dict, page: int = 1, limit: int = 
     if filters.get("max_time"):
         base = base.filter(Recipe.total_time <= filters["max_time"])
     if filters.get("max_calories"):
-        base = base.filter(Recipe.nutrition["calories"].astext.cast(float) <= filters["max_calories"])
+        base = base.filter(Recipe.nutrition["calories"].astext.cast(Float) <= filters["max_calories"])
     if filters.get("min_calories"):
-        base = base.filter(Recipe.nutrition["calories"].astext.cast(float) >= filters["min_calories"])
+        base = base.filter(Recipe.nutrition["calories"].astext.cast(Float) >= filters["min_calories"])
 
     if filters.get("vegan"):
         base = base.filter(Recipe.tags.contains(["vegan"]))
@@ -45,12 +47,20 @@ def _search(db: Session, query: str, filters: dict, page: int = 1, limit: int = 
     if filters.get("gluten_free"):
         base = base.filter(or_(Recipe.tags.contains(["gluten-free"]), Recipe.tags.contains(["is_gluten_free"])))
 
-    # sort by rank
-    results = (base.order_by(text("rank DESC")).offset(offset).limit(limit).all())
+    # sort recommendations
+    # results = (base.order_by(text("rank DESC")).offset(offset).limit(limit).all())
+    if sort == SortRecs.quickest:
+        base = base.order_by(Recipe.total_time.asc().nullslast())
+    elif sort == SortRecs.newest:
+        base = base.order_by(Recipe.date.desc().nullslast())
+    elif sort == SortRecs.calories_asc:
+        base = base.order_by(func.cast(Recipe.nutrition["calories"].astext, Float).asc().nullslast())
+    else:       # default
+        base = base.order_by(text("rank DESC"))
     
-    total = base.count()
+    results = base.offset(offset).limit(limit).all()
 
-    return results, total
+    return results, base.count()
 
 
 def search_by_ingredients(db: Session, ing_names: list[str], filters: dict = None, page: int = 1, limit: int = 20):
@@ -151,7 +161,6 @@ def find_ingredient_ids(db: Session, ing_names: list[str]):
             LIMIT 3
         """), {"query": normalized}).fetchall()
 
-        # matches[name] = [row.id for row in diff_res] if diff_res else []
         matches[name] = [row._mapping["id"] for row in diff_res]
 
     
@@ -189,3 +198,12 @@ def get_suggestion(reason: str):
         "filters_too_strict": ["Try removing some filters", "Increase the maximum cook time", "Try a different dietary filter"],
     }
     return suggestions.get(reason, [])
+
+
+
+class SortRecs(str, Enum):
+    relevance = "relevance"     # more relevant recipes have more user ingredients
+    quickest = "quickest"
+    newest = "newest"
+    calories_asc = "calories_asc"
+    # calories_desc = "calories_desc"
