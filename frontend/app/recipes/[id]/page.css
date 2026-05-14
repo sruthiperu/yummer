@@ -30,13 +30,13 @@
 }
 
 /* tags */
-.tags {
+.tags_rec {
     display: flex;
     flex-wrap: wrap;
     margin: 8px 0;
     gap: 8px;
 }
-.tag {
+.tag_rec {
     background: rgb(185, 185, 185);
     border-radius: 20px;
     padding: 4px 12px;

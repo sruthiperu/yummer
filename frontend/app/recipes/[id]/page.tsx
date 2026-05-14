@@ -71,9 +71,9 @@ export default function RecipePage() {
 
                 { /* tags */ }
                 {displayRecipe.tags && displayRecipe.tags.length > 0 && (
-                    <div className="tags">
+                    <div className="tags_rec">
                         {displayRecipe.tags.slice(0, 5).map((tag: string) => (
-                        <span key={tag} className="tag">{tag}</span>
+                        <span key={tag} className="tag_rec">{tag}</span>
                         ))}
                     </div>
                 )}
@@ -87,23 +87,6 @@ export default function RecipePage() {
 
             </section>
             
-            { /* nutrition */ }
-            {displayRecipe.nutrition && (
-                <section className="nutrition_info">
-                    <h2 className="section_title">Nutrition</h2>
-                    <div className="nutrition_layout">
-                        {[{label: "Calories", value: displayRecipe.nutrition.calories}, {label: "Protein", value: `${displayRecipe.nutrition.protein}g`},
-                        {label: "Carbs", value: `${displayRecipe.nutrition.carbs}g`}, {label: "Fat", value: `${displayRecipe.nutrition.total_fat}g`},
-                        {label: "Sugar", value: `${displayRecipe.nutrition.sugar}g`}].map(({ label, value }) => (
-                            <div key={label} className={"nutrition_card"}>
-                                <div className="nutrition_val">{value}</div>
-                                <div className="nutrition_label">{label}</div>
-                            </div>
-                        ))}
-                    </div>
-                </section>
-            )}
-
             { /* AI chat */ }
             <section className="chatbox">
                 <h2 className="chatbox_title">Modify this recipe</h2>
@@ -143,9 +126,26 @@ export default function RecipePage() {
                 )}
             </section>
 
+            { /* nutrition */ }
+            {displayRecipe.nutrition && (
+                <section className="nutrition_info">
+                    <h2 className="section_title">Nutrition <i className="fa-brands fa-nutritionix"></i></h2>
+                    <div className="nutrition_layout">
+                        {[{label: "Calories", value: displayRecipe.nutrition.calories}, {label: "Protein", value: `${displayRecipe.nutrition.protein}g`},
+                        {label: "Carbs", value: `${displayRecipe.nutrition.carbs}g`}, {label: "Fat", value: `${displayRecipe.nutrition.total_fat}g`},
+                        {label: "Sugar", value: `${displayRecipe.nutrition.sugar}g`}].map(({ label, value }) => (
+                            <div key={label} className={"nutrition_card"}>
+                                <div className="nutrition_val">{value}</div>
+                                <div className="nutrition_label">{label}</div>
+                            </div>
+                        ))}
+                    </div>
+                </section>
+            )}
+
             { /* ingredients */ }
             <section className="ingredients">
-                <h2 className="ingredients_title">Ingredients</h2>
+                <h2 className="ingredients_title">Ingredients <i className="fa-solid fa-carrot"></i></h2>
                 <ul className="ingredients_list">
                     {displayRecipe.ingredients?.map((ing: any, i: number) => (
                         <li key={i} className="ingredient_name">
@@ -158,7 +158,7 @@ export default function RecipePage() {
             
             { /* directions */}
             <section className="directions">
-                <h2 className="directions_title">Directions</h2>
+                <h2 className="directions_title">Directions <i className="fa-solid fa-list-check"></i></h2>
                 <ol className="directions_list">
                     {displayRecipe.directions.map((step: any) => (
                         <li key={step.step_num} className="direction">

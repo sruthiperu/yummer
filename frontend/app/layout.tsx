@@ -8,6 +8,8 @@ import {useMe} from "@/lib/useMe"
 import "./globals.css"
 import "./nav.css"    // for navigation bar
 
+import '@fortawesome/fontawesome-free/css/all.min.css';
+
 
 export default function RootLayout({
   children,

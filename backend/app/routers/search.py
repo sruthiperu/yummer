@@ -49,6 +49,7 @@ def search(
 @router.get("/by-ingredients")
 def search_by_ingredients(
     ingredients: str = Query(..., description="Comma separated ingredient list"),
+    sort: str = "relevance",
     page: int = Query(1, ge=1),
     limit: int = Query(20, ge=1, le=50),
     is_vegan: bool = False,
@@ -64,7 +65,7 @@ def search_by_ingredients(
         return {"results": [], "total": 0, "empty_reason": "bad_input", "suggestions": ["Enter at least one ingredient name"]}
 
     filters = {"vegan": is_vegan, "vegetarian": is_vegetarian, "gluten_free": is_gluten_free, "max_time": max_time}
-    results, total = search_ings(db, ing_list, filters, page, limit)
+    results, total = search_ings(db, ing_list, filters, page, limit, sort)
 
 
     if total == 0:

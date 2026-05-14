@@ -17,9 +17,9 @@ patterns = [
     (r'\b(bread|cake|pastry|almond|coconut|rice|oat|chickpea|buckwheat|quinoa|tapioca|cassava|potato|spelt|rye|teff|amaranth|sorghum)\s*flour\b', r'\1 flour'),
 
     # cheese
-    (r'\b(cheddar|mozzarella|parmesan|swiss|provolone|gouda|brie|camembert|feta|goat|blue|ricotta|cottage|cream)\s*cheese\b', r'\1 cheese'),
-    (r'\b(shredded|grated|sliced|pre[- ]?shredded|block)\s*(cheddar|mozzarella|parmesan)\s*cheese\b', r'\2 cheese'),
-    (r'\b(fresh|shredded|grated|sliced|pre[- ]?shredded|block)\s*cheese\b', r'cheese'),
+    (r'\b(fresh|shredded|grated|sliced|pre[- ]?shredded|block)\s+', ''),
+    (r'\b(cheddar|mozzarella|parmesan|swiss|provolone|gouda|brie|camembert|feta|goat|blue|ricotta|cottage|cream)\s*cheese\b', r'\1'),
+    (r'\bcheese\b', ''),
 
     # butter
     (r'\b(clarified|ghee|brown)\s*butter\b', r'\1 butter'),

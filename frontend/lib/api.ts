@@ -10,6 +10,12 @@ export type User = {
   dietary_restrictions?: any
   allergens?: string[]
 }
+export type SearchResponse = {
+  results: Recipe[]
+  total: number
+  suggestions?: string[]
+  empty_reason?: string
+}
 
 // fetch wrapper
 async function fetchJSON<T>(url: string, options?: RequestInit): Promise<T> {
@@ -29,16 +35,43 @@ export async function getRecipe(id: number): Promise<Recipe> {
 export async function modifyRecipe(id: number, message: string) {
   return fetchJSON(`${API_URL}/recipes/${id}/modify`, {
     method: "POST",
-    body: JSON.stringify({ message }),
+    body: JSON.stringify({message}),
   })
 }
 
 // search
-export async function searchRecipes(query: string, filters?: Record<string, any>) {
-  let url = `${API_URL}/search?q=${encodeURIComponent(query)}`
-  if (filters) url += `&${new URLSearchParams(filters).toString()}`
-  return fetchJSON(url)
+export async function searchRecipes(query: string, params: Record<string, any> = {}) {
+  const searchParams = new URLSearchParams()
+  searchParams.set("q", query)
+
+  // only add params with actual values
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== false && value !== "") {
+      searchParams.set(key, String(value))
+    }
+  })
+
+  const url = `${API_URL}/search?${searchParams.toString()}`
+
+  return fetchJSON<SearchResponse>(url)
 }
+// search by ingredients
+export async function searchByIngredients(ingredients: string, params: Record<string, any> = {}) {
+  const searchParams = new URLSearchParams()
+  searchParams.set("ingredients", ingredients)
+
+  // only add params with actual values
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== false && value !== "") {
+      searchParams.set(key, String(value))
+    }
+  })
+
+  const url = `${API_URL}/search/by-ingredients?${searchParams.toString()}`
+
+  return fetchJSON<SearchResponse>(url)
+}
+
 
 // favorites
 export async function getFavorites() {
