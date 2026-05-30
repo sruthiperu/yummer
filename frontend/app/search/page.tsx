@@ -5,7 +5,9 @@ import {useState, type SyntheticEvent} from "react"
 import {useSearch} from "@/lib/useSearch"
 
 import RecipeCard from "../recipe_card"
+import SearchBar from "../search_bar"
 
+import "../home.css"
 import "./search.css"
 
 
@@ -39,12 +41,7 @@ export default function SearchPage() {
         <main className="search_page">
 
             {/* search bar */}
-            <form onSubmit={handleNewSearch} className="search_form">
-                <div className="search_bar">
-                    <input name="q" placeholder="Search recipes..." className="search_input"/>
-                    <button type="submit" className="search_btn">Search</button>
-                </div>
-            </form>
+            <SearchBar placeholder="chicken, pasta, broccoli, ..." />
             
 
             {/* header for results */}
