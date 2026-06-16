@@ -4,14 +4,19 @@ import {useState, useEffect, SyntheticEvent} from "react"
 import {useRouter} from "next/navigation"
 import Link from "next/link"
 import SearchBar from "./search_bar"
+import BrowseDesign from "./browse_design"
+import SearchIngredientsCTA from "./search_ingredients_cta"
 import "./home.css"
 
 export default function HomePage() {
   const [q, set_q] = useState("")
   const router = useRouter()
 
-  const title = "Find your next favorite recipe"
-  const subtitle = "with ingredients you already have"
+  const title_before = "Find your next "
+  const blue_part = "favorite"
+  const title_after = " recipe"
+  const title = title_before + blue_part + title_after
+  const subtitle = "using the ingredients you already have"
   /* typing effect */
   const [titleText, setTitleText] = useState("")
   const [subText, setSubText] = useState("")
@@ -20,18 +25,38 @@ export default function HomePage() {
   const [subDone, setSubDone] = useState(false)
   const [showEndCursor, setShowEndCursor] = useState(false)
 
+  function showText() {
+    setTitleText(title)
+    setSubText(subtitle)
+    setTitleDone(true)
+    setSubStarted(true)
+    setSubDone(true)
+    setShowEndCursor(false)
+  }
+
+  // typing effect
   useEffect(() => {
+
     let i = 0
     let j = 0
+    let cancelled = false
+    const timers: ReturnType<typeof setTimeout>[] = []
+    function schedule(fn: () => void, ms: number) {
+      timers.push(
+        setTimeout(() => {
+          if (!cancelled) fn()
+        }, ms)
+      )
+    }
     
     function typeTitle() {
       if (i < title.length) {
         setTitleText(title.slice(0, i + 1))
         i++
-        setTimeout(typeTitle, 40)
+        schedule(typeTitle, 40)
       } else {
         setTitleDone(true)
-        setTimeout(() => {
+        schedule(() => {
           setSubStarted(true)
           typeSub()
         }, 300)
@@ -42,21 +67,40 @@ export default function HomePage() {
       if (j < subtitle.length) {
         setSubText(subtitle.slice(0, j + 1))
         j++
-        setTimeout(typeSub, 40)
+        schedule(typeSub, 40)
       } else {
         setSubDone(true)
-        setTimeout(() => {
+        // remove cursor after it blinks 3 times
+        schedule(() => {
           setShowEndCursor(true)
-          // remove cursor after it blinks 3 times
-          setTimeout(() => {
-            setShowEndCursor(false)
-          }, 2500)
+          schedule(() => setShowEndCursor(false), 2500)
         }, 300)
       }
     }
   
     typeTitle()
+
+    return () => {
+      cancelled = true
+      timers.forEach(clearTimeout)
+    }
   }, [])
+
+  function renderTitle(text: string) {
+    const beforeLen = title_before.length
+    const accentEnd = beforeLen + blue_part.length
+    const before = text.slice(0, Math.min(text.length, beforeLen))
+    const accent = text.length > beforeLen ? text.slice(beforeLen, Math.min(text.length, accentEnd)) : ""
+    const after = text.length > accentEnd ? text.slice(accentEnd) : ""
+  
+    return (
+      <>
+        {before}
+        {accent && <span className="home_title_accent">{accent}</span>}
+        {after}
+      </>
+    )
+  }
 
   function handleSearch(e: SyntheticEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -70,10 +114,11 @@ export default function HomePage() {
   }
 
   const quick_options = [
-    {label: "Vegetarian", q: "vegetarian dinner"}, 
     {label: "Under 30 min", q: "quick dinner"},
     {label: "High protein", q: "high protein meal"}, 
-    {label: "Keto", q: "keto recipes"}
+    {label: "Vegetarian", q: "vegetarian dinner"}, 
+    {label: "Keto", q: "keto recipes"},
+    {label: "Gluten-Free", q: "gluten-free recipes"}
   ]
   
   return (
@@ -93,7 +138,7 @@ export default function HomePage() {
       <main className="home">
         <div className="title_wrap">
           <h1 className="home_title">
-            {titleText}
+            {renderTitle(titleText)}
             {!titleDone && <span className="cursor-solid"></span>}
           </h1>
         </div>
@@ -105,37 +150,23 @@ export default function HomePage() {
           </h2>
         </div>
 
-        <SearchBar placeholder="chicken, pasta, broccoli, ..." />
-        {/* 
-        <form onSubmit={handleSearch} className="home_form">
-          <div className="search_row">
-            <div className="search_input_wrapper">
-              <i className="fa-solid fa-magnifying-glass search_icon"></i>
-              <input
-                type="text"
-                autoComplete="off"
-                value={q}
-                onChange={e => set_q(e.target.value)}
-                placeholder="chicken, pasta, broccoli, ..."
-                className="search_input"
-              />
-            </div>
-          </div>
-        </form>
-        */}
+        {/* <SearchBar placeholder="chicken, pasta, broccoli, ..." /> */}
+        <div id="home-search">
+          <SearchBar placeholder="chicken, pasta, broccoli, ..." />
+        </div>
 
         <div className="quick_options">
           {quick_options.map(opt => (
-            <button
-              key={opt.label}
-              onClick={() => router.push(`/search?q=${encodeURIComponent(opt.q)}`)}
-              className="quick_opt"
-            >
+            <button key={opt.label} onClick={() => router.push(`/search?q=${encodeURIComponent(opt.q)}`)} className="quick_opt">
               {opt.label}
             </button>
           ))}
         </div>
       </main>
+
+      <BrowseDesign />    {/* browse popular, trendy recipes */}
+      
+      <SearchIngredientsCTA />
     </>
   )
 }

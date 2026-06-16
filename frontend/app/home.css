@@ -1,5 +1,5 @@
 body {
-    background: rgb(250, 250, 250);
+    background: rgb(245, 255, 255);
 }
 
 /* navigation bar */
@@ -8,6 +8,7 @@ body {
     top: 0;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); 
     z-index: 100;
+    background: rgb(245, 255, 255);
 }
 
 .nav_cont {
@@ -21,7 +22,7 @@ body {
 .nav_logo {
     font-size: 30px;
     font-weight: 600;
-    color: rgb(66, 195, 237);
+    color: rgb(30, 180, 225);
     letter-spacing: 1px;
     padding: 8px 20px;
     text-decoration: none;
@@ -40,7 +41,7 @@ body {
 
 .signin {
     font-size: 33px;
-    color: rgb(66, 195, 237);
+    color: rgb(30, 180, 225);
     text-decoration: none;
     padding: 8px 20px;
     transition: all 0.2s;
@@ -56,6 +57,14 @@ body {
     margin: 100px auto;
     padding: 24px;
     text-align: center;
+}
+.home_title_accent {
+    font-weight: 700;
+    /* font-style: italic; */
+    background: linear-gradient(90deg, rgb(30, 180, 225), rgb(8, 146, 192));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
 }
 
 .title_wrap {
@@ -88,7 +97,7 @@ body {
     display: inline-block;
     width: 3px;
     height: 1em;
-    background-color: rgb(66, 195, 237);
+    background-color: rgb(30, 180, 225);
     margin-left: 2px;
     vertical-align: middle;
     transform: translateY(-2px);
@@ -101,7 +110,7 @@ body {
     height: 1em;
     margin-left: 2px;
     vertical-align: middle;
-    background-color: rgb(66, 195, 237);
+    background-color: rgb(30, 180, 225);
     opacity: 0;
     transform: translateY(-2px);
 }
@@ -162,7 +171,7 @@ body {
     opacity: 1;
 }
 .search_input_wrapper:focus-within {
-    border-color: rgb(66, 195, 237);
+    border-color: rgb(30, 180, 225);
 }
 
 
@@ -170,7 +179,7 @@ body {
     margin-bottom: 24px;
 }
 
-/* Quick Options Container */
+/* quick options */
 .quick_options {
     display: flex;
     flex-wrap: wrap;
@@ -178,24 +187,20 @@ body {
     gap: 12px;
     margin-top: 32px;
 }
-
-/* Quick Option Buttons */
 .quick_opt {
-    background: white;
+    background: rgb(245, 255, 255);
     border-radius: 48px;
     border: 1.5px solid #e0e0e0;
-    color: #555;
-    padding: 10px 20px;
-    font-size: 14px;
+    color: rgb(40, 40, 40);
+    padding: 8px 14px;
+    font-size: 14.5px;
     font-weight: 500;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.4s;
 }
-
 .quick_opt:hover {
-    background: rgb(66, 195, 237);
-    border-color: rgb(66, 195, 237);
+    border-color: rgb(8, 146, 192);
+    background: rgb(30, 180, 225);
     color: white;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(66, 195, 237, 0.2);
+
 }

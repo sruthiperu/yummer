@@ -1,0 +1,114 @@
+.browse_section {
+    max-width: 1200px;
+    margin: 48px auto 64px;
+    padding: 0 24px;
+}
+  
+.browse_header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+  
+.browse_title {
+    margin: 0;
+    font-size: 32px;
+    font-weight: 700;
+    font-style: italic;
+    /* color: rgb(66, 195, 237); */
+    background: linear-gradient(90deg, rgb(30, 180, 225), rgb(8, 146, 192));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+  
+.browse_arrows {
+    display: flex;
+    gap: 10px;
+}
+  
+.browse_arrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border: none;
+    border-radius: 50%;
+    background: rgb(30, 180, 225);
+    color: white;
+    cursor: pointer;
+    transition: background 0.4s, transform 0.4s;
+}
+  
+.browse_arrow:hover {
+    background: rgb(8, 146, 192);
+    /* transform: translateY(-1px); */
+}
+.browse_arrow--disabled,
+.browse_arrow:disabled {
+    background: rgb(160, 200, 200);
+    color: white;
+    cursor: not-allowed;
+}
+  
+.browse_track {
+    display: flex;
+    gap: 20px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    padding-top: 6px;          
+    padding-bottom: 16px; 
+}
+  
+.browse_track::-webkit-scrollbar {
+    display: none;
+}
+
+/* search ingredients cta */
+.search_cta {
+    max-width: 1200px;
+    margin: 24px auto 80px;
+    padding: 0 24px;
+}
+  
+.search_cta_row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    text-align: center;
+}
+  
+.search_cta_text {
+    margin: 0;
+    font-size: 29px;
+    font-weight: 600;
+    line-height: 1.3;
+    color: rgb(75, 75, 75);
+    display: inline-block;
+    position: relative;
+}
+  
+.search_cta_arrow {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border: none;
+    border-radius: 50%;
+    background: rgb(30, 180, 225);
+    color: white;
+    font-size: 18px;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.2s;
+}
+.search_cta_arrow:hover {
+    background: rgb(8, 146, 192);
+}
