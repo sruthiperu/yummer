@@ -1,7 +1,7 @@
 "use client"
 
-import {useState, useEffect, SyntheticEvent} from "react"
-import {useRouter} from "next/navigation"
+import { useState, useEffect, SyntheticEvent } from "react"
+import { useRouter } from "next/navigation"
 import Link from "next/link"
 import SearchBar from "./search_bar"
 import BrowseDesign from "./browse_design"
@@ -11,7 +11,7 @@ import "./home.css"
 export default function HomePage() {
   const [q, set_q] = useState("")
   const router = useRouter()
-
+  
   const title_before = "Find your next "
   const blue_part = "favorite"
   const title_after = " recipe"
@@ -25,17 +25,14 @@ export default function HomePage() {
   const [subDone, setSubDone] = useState(false)
   const [showEndCursor, setShowEndCursor] = useState(false)
 
-  function showText() {
-    setTitleText(title)
-    setSubText(subtitle)
-    setTitleDone(true)
-    setSubStarted(true)
-    setSubDone(true)
-    setShowEndCursor(false)
-  }
-
   // typing effect
   useEffect(() => {
+    setTitleText("")
+    setSubText("")
+    setTitleDone(false)
+    setSubStarted(false)
+    setSubDone(false)
+    setShowEndCursor(false)
 
     let i = 0
     let j = 0
@@ -125,13 +122,11 @@ export default function HomePage() {
     <>
       <nav className="navbar">
         <div className="nav_cont">
-          <Link href="/" className="nav_logo">
-            yummer<span className="logo_dot"></span>
-          </Link>
+          <Link href="/" className="nav_logo">yummer</Link>
 
-          <Link href="/api/v1/auth/google" className="signin">
+          <a href={`${process.env.NEXT_PUBLIC_API_URL}/auth/google`} className="signin">
             <i className="fa-regular fa-circle-user"></i>
-          </Link>
+          </a>
         </div>
       </nav>
 

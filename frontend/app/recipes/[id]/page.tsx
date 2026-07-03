@@ -57,70 +57,82 @@ export default function RecipePage() {
         <main className="styles">
 
             { /* header */ }
-            <section>
+            <section className="recipe_header">
                 <h1 className="recipe_title">{displayRecipe.name}</h1>
 
-                { /* recipe info: time, date, link to source */}
-                <div className="data_row">
-                    {displayRecipe.total_time && (<span className="total_time">{displayRecipe.total_time} min</span>)}
+                <div className="recipe_meta">
+                    {displayRecipe.total_time && (
+                    <span className="meta_chip meta_chip--time">
+                        <i className="fa-regular fa-clock" />
+                        {displayRecipe.total_time} min
+                    </span>
+                    )}
+
                     {recipe.link && (
-                        <a href={`https://${recipe.link}`} target="_blank" rel="noopener noreferrer" className="view_original">
-                        View original</a>
+                    <a
+                        href={recipe.link.startsWith("http") ? recipe.link : `https://${recipe.link}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="meta_chip meta_chip--link"
+                    >
+                        <i className="fa-solid fa-arrow-up-right-from-square" />
+                        View original
+                    </a>
                     )}
                 </div>
 
-                { /* tags */ }
                 {displayRecipe.tags && displayRecipe.tags.length > 0 && (
                     <div className="tags_rec">
-                        {displayRecipe.tags.slice(0, 5).map((tag: string) => (
+                    {displayRecipe.tags.slice(0, 5).map((tag: string) => (
                         <span key={tag} className="tag_rec">{tag}</span>
-                        ))}
+                    ))}
                     </div>
                 )}
-
-                { /* description */ }
-                {displayRecipe.description && (
-                    <p className="description">
-                        {displayRecipe.description}
-                    </p>
-                )}
-
             </section>
             
             { /* AI chat */ }
             <section className="chatbox">
-                <h2 className="chatbox_title">Modify this recipe</h2>
-                    <p className="chatbox_subtitle">Make it keto, gluten-free, higher in protein, adjust the number of servings, or anything else!</p>
+                <div className="chatbox_header">
+                    <div className="chatbox_header_text">
+                        <h2 className="chatbox_title">Modify this recipe</h2>
+                        <p className="chatbox_subtitle">
+                            Make it keto, gluten-free, higher in protein, adjust servings, or anything else.
+                        </p>
+                    </div>
+                </div>
 
-                <div className="user_input">     { /* in chatbox */ }   
+                <div className="user_input">
                     <input
                         type="text"
                         value={message}
                         onChange={(e) => setMessage(e.target.value)}
                         onKeyDown={(e) => e.key === "Enter" && handleModify()}
-                        placeholder="e.g. make this keto, gluten-free..."
+                        placeholder="How would you like to change this recipe?"
                         disabled={aiLoading}
                         className="chatbox_input"
                     />
-                    <button
-                        onClick={handleModify}
-                        disabled={aiLoading || !message.trim()}
-                        className="change_btn"
-                    >{aiLoading ? "Loading..." : "Modify"}</button>
+                    <button onClick={handleModify} disabled={aiLoading || !message.trim()} className="change_btn">
+                        {aiLoading ? (
+                            <><i className="fa-solid fa-spinner fa-spin" />Loading...</>
+                        ) : (
+                            <><i className="fa-solid fa-wand-magic-sparkles" />Modify</>
+                        )}
+                    </button>
                 </div>
 
-                {aiError && (<p className="error_msg">{aiError}</p>)}
+                {aiError && <p className="error_msg">{aiError}</p>}
 
                 {modifiedRecipe && (
                     <div className="success_msg">
-                        <span className="success_text">Recipe modified</span>
-                        <button
-                            onClick={() => {
-                                setModifiedRecipe(null)
-                                setAiError("")
-                            }}
-                            className={"restore_btn"}
-                            >Restore original
+                        <span className="success_text">
+                            <i className="fa-solid fa-circle-check" /> Recipe modified
+                        </span>
+                        <button onClick={() => {
+                            setModifiedRecipe(null) 
+                            setAiError("")}}
+                            className="restore_btn"
+                        > 
+                        Restore original
                         </button>
                     </div>
                 )}
@@ -145,26 +157,33 @@ export default function RecipePage() {
 
             { /* ingredients */ }
             <section className="ingredients">
-                <h2 className="ingredients_title">Ingredients <i className="fa-solid fa-carrot"></i></h2>
+                <h2 className="ingredients_title">
+                    Ingredients <i className="fa-solid fa-carrot" />
+                </h2>
                 <ul className="ingredients_list">
-                    {displayRecipe.ingredients?.map((ing: any, i: number) => (
-                        <li key={i} className="ingredient_name">
-                            {ing.quantity && ing.unit && (<span className="ingredient_quantity">{ing.quantity} {ing.unit}</span>)}
-                            <span>{ing.name || ing.raw_ingredient}</span>
+                    {displayRecipe.ingredients?.map((ing: any, i: number) => {
+                    const qty = [ing.quantity, ing.unit].filter(Boolean).join(" ")
+                    const name = ing.name || ing.raw_ingredient
+
+                    return (
+                        <li key={i} className="ingredient_tile">
+                        {qty && (<span className="ingredient_qty">{qty}</span>)}
+                        <span className="ingredient_name">{name}</span>
                         </li>
-                    ))}
+                    )
+                    })}
                 </ul>
             </section>
             
             { /* directions */}
             <section className="directions">
-                <h2 className="directions_title">Directions <i className="fa-solid fa-list-check"></i></h2>
+                <h2 className="directions_title"> Directions <i className="fa-solid fa-list-check" /></h2>
                 <ol className="directions_list">
-                    {displayRecipe.directions.map((step: any) => (
-                        <li key={step.step_num} className="direction">
-                            <span className="step_num">{step.step_num}</span>
-                            <span>{step.direction}</span>
-                        </li>
+                    {displayRecipe.directions?.map((step: any) => (
+                    <li key={step.step_num} className="direction_tile">
+                        <span className="direction_step">{step.step_num}</span>
+                        <p className="direction_text">{step.direction}</p>
+                    </li>
                     ))}
                 </ol>
             </section>

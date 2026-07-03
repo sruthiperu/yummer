@@ -21,7 +21,7 @@ export default function SearchPage() {
     
     const [sort, setSort] = useState("relevance")
     const page = Number(searchParams.get("page") || 1)
-    const {data, isLoading, isError} = useSearch(query, {sort}, page)
+    const {data, isLoading, isError} = useSearch(query, {sort, min_time: 5, max_time: 720}, page)
   
     function handleNewSearch(e: SyntheticEvent<HTMLFormElement>) {
         e.preventDefault()
