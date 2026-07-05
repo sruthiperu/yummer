@@ -1,13 +1,11 @@
 "use client"
 
 import {useSearchParams, useRouter} from "next/navigation"
-import {useState, type SyntheticEvent} from "react"
+import {useState} from "react"
 import {useSearch} from "@/lib/useSearch"
 
 import RecipeCard from "../recipe_card"
 import SearchBar from "../search_bar"
-
-import "../home.css"
 import "./search.css"
 
 
@@ -22,26 +20,12 @@ export default function SearchPage() {
     const [sort, setSort] = useState("relevance")
     const page = Number(searchParams.get("page") || 1)
     const {data, isLoading, isError} = useSearch(query, {sort, min_time: 5, max_time: 720}, page)
-  
-    function handleNewSearch(e: SyntheticEvent<HTMLFormElement>) {
-        e.preventDefault()
-        const form_data = new FormData(e.currentTarget)      // get form data
-        const input_val = form_data.get("q")       // get input from form data
-        
-        if (typeof input_val === "string" && input_val.trim()) {      // if not empty
-            if (input_val.includes(",")) {
-                router.push(`/search/by-ingredients?ingredients=${encodeURIComponent(input_val.trim())}`)
-            } else {
-                router.push(`/search?q=${encodeURIComponent(input_val.trim())}`)
-            }
-        }
-    }
 
     return (
         <main className="search_page">
 
             {/* search bar */}
-            <SearchBar placeholder="chicken, pasta, broccoli, ..." />
+            <SearchBar defaultValue={query}/>
             
 
             {/* header for results */}

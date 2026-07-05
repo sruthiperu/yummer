@@ -20,6 +20,7 @@ def search(
     is_vegan: bool = False,
     is_vegetarian: bool = False,
     is_gluten_free: bool = False,
+    min_time: Optional[int] = None,
     max_time: Optional[int] = None,
     min_calories: Optional[int] = None,
     max_calories: Optional[int] = None,
@@ -31,8 +32,8 @@ def search(
     if not clean_query_res:
         return {"results": [], "total": 0, "empty_reason": "bad_input", "suggestions": ["Enter at least two characters to search"]}
     
-    filters = {"vegan": is_vegan, "vegetarian": is_vegetarian, "gluten_free": is_gluten_free, "max_time": max_time, 
-               "min_calories": min_calories, "max_calories": max_calories}
+    filters = {"vegan": is_vegan, "vegetarian": is_vegetarian, "gluten_free": is_gluten_free, 
+               "min_time": min_time, "max_time": max_time, "min_calories": min_calories, "max_calories": max_calories}
 
     results, total, empty_reason = search_recipes(db, clean_query_res, filters, page, limit, sort=sort)
 

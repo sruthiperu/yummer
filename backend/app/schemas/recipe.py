@@ -9,6 +9,7 @@ class IngredientResponse(BaseModel):
     quantity: str | None
     unit: str | None
     raw_ingredient: str | None
+    food_type: str | None = None
     class Config:
         from_attributes = True
 

@@ -2,61 +2,6 @@ html, body {
     background: rgb(250, 255, 255);
 }
 
-/* navigation bar */
-.navbar {
-    position: sticky;
-    top: 0;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); 
-    z-index: 100;
-    background: rgb(250, 255, 255);
-}
-
-.nav_cont {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin: 0 auto;
-    max-width: 1200px;
-}
-
-.nav_logo {
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-    font-size: 32px;
-    font-weight: 800;
-    background: linear-gradient(90deg, rgb(30, 180, 225), rgb(8, 146, 192));
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-    -webkit-text-fill-color: transparent;
-    padding: 8px 20px;
-    text-decoration: none;
-}
-
-/*
-.logo_dot {
-    display: inline-block;
-    transform: translateY(2px);
-    width: 7px;
-    height: 7px;
-    background-color: rgb(8, 146, 192);
-    border-radius: 50%;
-    margin-left: 2px;
-    font-size: 0;
-}
-*/
-
-.signin {
-    font-size: 33px;
-    color: rgb(30, 180, 225);
-    text-decoration: none;
-    padding: 8px 20px;
-    transition: all 0.2s;
-}
-
-.signin:hover {
-    color: rgb(0, 128, 171);
-}
-
 /* home page */
 .home {
     max-width: 600px;
@@ -131,58 +76,6 @@ html, body {
 @keyframes blink {
     0%, 100% {opacity: 1;}
     50% {opacity: 0;}
-}
-
-/* magnifying glass icon */
-.search_icon {
-    position: absolute;
-    left: 18px;
-    color: rgb(40, 40, 40);
-    font-size: 18px;
-    pointer-events: none;
-    z-index: 1;
-}
-
-/* search bar */
-.search_input_wrapper {
-    position: relative;
-    display: flex;
-    align-items: center;
-    flex: 1;
-    border: 1px solid rgb(190, 190, 190); 
-    border-radius: 40px;
-}
-
-
-.search_row {
-    display: flex;
-    align-items: center;
-    width: 100%;
-}
-
-.search_input {
-    padding: 12px 18px 12px 42px;
-    width: 100%;
-    height: auto;
-    color: rgb(40, 40, 40);
-    border: none;
-    outline: none;
-    background: transparent;
-    font-size: 16px;
-    border-radius: 40px;
-}
-
-.search_input::placeholder {
-    color: rgb(100, 100, 100);
-    opacity: 1;
-}
-.search_input_wrapper:focus-within {
-    border-color: rgb(30, 180, 225);
-}
-
-
-.home_form {
-    margin-bottom: 24px;
 }
 
 /* quick options */

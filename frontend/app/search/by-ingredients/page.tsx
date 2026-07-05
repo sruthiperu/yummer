@@ -1,11 +1,12 @@
 "use client"
 
 import {useSearchParams, useRouter} from "next/navigation"
-import {useState, type SyntheticEvent} from "react"
+import {useState} from "react"
 import {useQuery} from "@tanstack/react-query"
 import {searchByIngredients} from "@/lib/api"
 
 import RecipeCard from "../../recipe_card"
+import SearchBar from "../../search_bar"
 
 import "../search.css"
 
@@ -29,32 +30,11 @@ export default function IngredientSearchPage() {
         staleTime: 1000 * 60 * 2,
     })
 
-    console.log("API DATA:", data)
-  
-    function handleNewSearch(e: SyntheticEvent<HTMLFormElement>) {
-        e.preventDefault()
-        const form_data = new FormData(e.currentTarget)
-        const input_val = form_data.get("q")
-        
-        if (typeof input_val === "string" && input_val.trim()) {
-            if (input_val.includes(",")) {
-                router.push(`/search/by-ingredients?ingredients=${encodeURIComponent(input_val.trim())}`)
-            } else {
-                router.push(`/search?q=${encodeURIComponent(input_val.trim())}`)
-            }
-        }
-    }
-
     return (
         <main className="search_page">
 
             {/* search bar */}
-            <form onSubmit={handleNewSearch} className="search_form">
-                <div className="search_bar">
-                    <input name="q" placeholder="Search ingredients (comma separated)..." className="search_input"/>
-                    <button type="submit" className="search_btn">Search</button>
-                </div>
-            </form>
+            <SearchBar defaultValue={ingredients}/>
             
 
             {/* header for results */}

@@ -18,12 +18,16 @@ patterns = [
 
     # cheese
     (r'\b(fresh|shredded|grated|sliced|pre[- ]?shredded|block)\s+', ''),
-    (r'\b(cheddar|mozzarella|parmesan|swiss|provolone|gouda|brie|camembert|feta|goat|blue|ricotta|cottage|cream)\s*cheese\b', r'\1'),
-    (r'\bcheese\b', ''),
+    (r'\b(cheddar|mozzarella|parmesan|swiss|provolone|gouda|brie|camembert|feta|goat|blue|ricotta|cottage|cream)\s*cheese\b', r'\1 cheese'),
+    (r'\b(monterey|pepper)\s*jack\s*cheese\b', r'\1 jack cheese'),
+    (r'\bcheese\b', 'cheese'),
 
     # butter
     (r'\b(clarified|ghee|brown)\s*butter\b', r'\1 butter'),
     (r'\b(unsalted|salted|organic|sweet cream|grade a|grade aa|grass[- ]?fed|european[- ]?style|cultured|whipped|plant[- ]?based)?\s*butter\b', 'butter'),
+
+    # sour cream
+    (r'\b(?:fat[- ]?free|light|reduced[- ]?fat|nonfat|non[- ]?fat)\s+sour cream\b', 'sour cream'),
 
     # yogurt
     (r'\b(greek|icelandic|australian|french|skyr|kefir|plant[- ]?based|soy|coconut|non[- ]?dairy|frozen)\s*yogurt\b', r'\1 yogurt'),
@@ -31,9 +35,10 @@ patterns = [
     (r'\b(traditional)?\s*yogurt\b', 'yogurt'),
 
     # vegetables
-    (r'\b(yellow|white|brown|spanish)?\s*onion\b', 'onion'),
-    (r'\b(red)?\s*onion\b', r'\1 onion'),
+    (r'\b(?:texas\s+)?sweet\s+onion\b', 'sweet onion'),
+    (r'\b(vidalia|walla walla|spanish|yellow|white|brown|red|sweet)\s+onion\b', r'\1 onion'),
     (r'\b(green|spring|scallion)\s*onions?\b', 'green onion'),
+    (r'\bonions?\b', 'onion'),
     (r'\b(fresh)?\s*garlic\s*cloves?\b', 'garlic'),
     (r'\b(russet|idaho|baking)?\s*potatoes?\b', 'potato'),
     (r'\b(yukon|gold|yellow)?\s*potatoes?\b', 'yellow potato'),
@@ -43,23 +48,43 @@ patterns = [
     (r'\b(bell|sweet)\s*peppers?\b', 'bell pepper'),
     (r'\b(jalapeno|habanero|serrano|poblano|anaheim|cayenne|thai)\s*peppers?\b', r'\1 pepper'),
     (r'\b(romaine|iceberg|butter|bibb)\s*lettuce\b', r'\1 lettuce'),
+    (r'\b(?:frozen\s+)?(broccoli|cauliflower)\s+florets?\b', r'\1 floret'),
     (r'\b(broccoli|cauliflower|asparagus|zucchini|cucumber|celery|carrot)\b', r'\1'),
+    (r'\b(?:baby\s*)?arugulas?\b', 'arugula'),
+    (r'\b(leek)s?\b', 'leek'),
+
+    # mustard, buns, chips, breadcrumbs
+    (r'\b(?:dijon|stoneground|stone[- ]ground|prepared|yellow|brown|whole[- ]grain|hot|spicy)\s+mustard\b', 'mustard'),
+    (r'\bprepared\s+\w+\s+mustard\b', 'mustard'),
+    (r'\b(?:hamburger|burger|hot dog|hotdog|sesame)\s+buns?\b', 'hamburger bun'),
+    (r'\bveggie\s+burger\b', 'veggie burger'),
+    (r'\b(?:baked|blue|white|red|yellow|corn|flour)\s+tortilla\s+chips?\b', 'tortilla chip'),
+    (r'\btortilla\s+chips?\b', 'tortilla chip'),
+    (r'\b(?:plain|dry|italian|panko|seasoned|fine|soft|fresh)\s+breadcrumbs?\b', 'breadcrumb'),
+    (r'\bbreadcrumbs?\b', 'breadcrumb'),
+
+    # herbs
+    (r'\b(?:mexican|italian|greek|dried|fresh|chopped|minced)\s+(oregano|basil|parsley|cilantro|thyme|rosemary|dill|mint|sage)\b', r'\1'),
 
     # fruits
-    (r'\b(lemon|lime|orange|grapefruit|clementine|tangerine)\s*(juice|zest)?\b', r'\1 \2'),
+    (r'\b(lemon|lime|orange|grapefruit|clementine|tangerine)\s*,?\s*(?:juice|zest)\s+of\b', r'\1'),
+    (r'\b(lemon|lime|orange|grapefruit)\s+juice\b', r'\1'),
+    (r'\b(lemon|lime|orange|grapefruit|clementine|tangerine)\b', r'\1'),
     (r'\b(strawberry|blueberry|raspberry|blackberry|cranberry)\s*berries?\b', r'\1'),
 
+    # broth, stock
+    (r'\b(?:hot|warm|cold|boiling)\s+(chicken|beef|vegetable|fish|bone)\s+(?:broth|stock)\b', r'\1 stock'),
+    (r'\b(chicken|beef|vegetable|fish|bone)\s+broth\b', r'\1 stock'),
+    (r'\b(chicken|beef|vegetable|fish|bone)\s+stock\b', r'\1 stock'),
+
     # meat
-    (r'\b(?:(?:boneless|skinless|fresh|frozen|organic|cooked|raw|chopped|sliced|diced)\s+)*chicken\s*(?:breast|thigh)?s?\b', 'chicken'),
+    (r'\b(?:(?:boneless|skinless|fresh|frozen|organic|cooked|raw|chopped|sliced|diced)\s+)*chicken(?:\s+(?:breast|thigh))?s?\b(?!\s+(?:broth|stock)\b)', 'chicken'),
     (r'\b(lean|extra|lean|organic|grass-fed|fresh|frozen|cooked|raw)?\s*(ground|minced)?\s*beef\b', 'beef'),
     (r'\b(beef|ribeye|sirloin|tenderloin)\s*steak\b', 'beef'),
     (r'\b(lean|extra-lean|fresh|frozen|cooked)?\s*(ground|minced)\s*(turkey|pork|lamb|chicken)\b', r'\3'),
     (r'\b(fresh|frozen|organic|boneless)?\s*(pork|boston)\s*shoulder\b', 'pork'),
     (r'\b(center-cut|bone-in|boneless|thick-cut|thin-cut)?\s*pork\s*chop\b', 'pork'),
     (r'\b(fresh|frozen|organic|grass-fed)?\s*(ground|leg|leg[- ]?of|chop)?\s*lamb\b', 'lamb'),
-    
-    # broth, stock
-    (r'\b(chicken|beef|vegetable|fish|bone)\s*(broth|stock)\b', r'\1 broth'),
 
     # seafood
     (r'\b(salmon|tuna|halibut|cod|tilapia|trout|mackerel|sardine|anchovy)\s*(fillet|steak)?\b', r'\1'),
@@ -67,9 +92,9 @@ patterns = [
     (r'\b(crab|lobster|scallop|mussel|clam|oyster)s?\b', r'\1'),    # make singular
 
     # sugar
-    (r'\b(white|refined|granulated|table|caster|superfine)?\s*sugar\b', 'sugar'),
-    (r'\b(powdered)\s*sugar\b', 'powdered sugar'),
-    (r'\b(light|dark|golden|demerara|turbinado|muscovado)\s*brown\s*sugar\b', 'brown sugar'),
+    (r'\b(light|dark|golden|demerara|turbinado|muscovado)\s+brown\s+sugar\b', 'brown sugar'),
+    (r'\b(white|refined|granulated|table|caster|superfine)\s+sugar\b', 'sugar'),
+    (r'\b(powdered)\s+sugar\b', 'powdered sugar'),
 
     # syrup
     (r'\b(agave|maple|date|coconut|brown rice|malt|golden)\s*syrup\b', r'\1 syrup'),
@@ -88,8 +113,8 @@ patterns = [
     (r'\b(sesame|sunflower|pumpkin|chia|flax|hemp)\s*seeds?\b', r'\1 seed'),
 
     # rice
-    (r'\b(brown|basmati|jasmine|arborio|calrose)\s*rice\b', r'\1 rice'),
-    (r'\b(white)?\s*rice\b', 'rice'),
+    (r'\b(brown|basmati|jasmine|arborio|calrose)\s+rice\b', r'\1 rice'),
+    (r'\bwhite\s+rice\b', 'rice'),
 
     # oats
     (r'\b(old[- ]?fashioned|rolled|steel[- ]?cut|instant|quick)?\s*oats?\b', 'oat'),
@@ -116,6 +141,7 @@ food_types = {
     "onion": {"type": "vegetable", "vegan": True, "vegetarian": True, "gluten_free": True},
     "red onion": {"type": "vegetable", "vegan": True, "vegetarian": True, "gluten_free": True},
     "green onion": {"type": "vegetable", "vegan": True, "vegetarian": True, "gluten_free": True},
+    "sweet onion": {"type": "vegetable", "vegan": True, "vegetarian": True, "gluten_free": True},
     "potato": {"type": "vegetable", "vegan": True, "vegetarian": True, "gluten_free": True},
     "yellow potato": {"type": "vegetable", "vegan": True, "vegetarian": True, "gluten_free": True},
     "red potato": {"type": "vegetable", "vegan": True, "vegetarian": True, "gluten_free": True},
@@ -139,6 +165,8 @@ food_types = {
     "kale": {"type": "vegetable", "vegan": True, "vegetarian": True, "gluten_free": True},
     "broccoli": {"type": "vegetable", "vegan": True, "vegetarian": True, "gluten_free": True},
     "cauliflower": {"type": "vegetable", "vegan": True, "vegetarian": True, "gluten_free": True},
+    "broccoli floret": {"type": "vegetable", "vegan": True, "vegetarian": True, "gluten_free": True},
+    "cauliflower floret": {"type": "vegetable", "vegan": True, "vegetarian": True, "gluten_free": True},
     "carrot": {"type": "vegetable", "vegan": True, "vegetarian": True, "gluten_free": True},
     "celery": {"type": "vegetable", "vegan": True, "vegetarian": True, "gluten_free": True},
     "cucumber": {"type": "vegetable", "vegan": True, "vegetarian": True, "gluten_free": True},
@@ -149,8 +177,31 @@ food_types = {
     "asparagus": {"type": "vegetable", "vegan": True, "vegetarian": True, "gluten_free": True},
     "green bean": {"type": "vegetable", "vegan": True, "vegetarian": True, "gluten_free": True},
     "pea": {"type": "vegetable", "vegan": True, "vegetarian": True, "gluten_free": True},
+    "chickpea": {"type": "vegetable", "vegan": True, "vegetarian": True, "gluten_free": True},
     "corn": {"type": "vegetable", "vegan": True, "vegetarian": True, "gluten_free": True},
     "mushroom": {"type": "vegetable", "vegan": True, "vegetarian": True, "gluten_free": True},
+    "arugula": {"type": "vegetable", "vegan": True, "vegetarian": True, "gluten_free": True},
+    "baby arugula": {"type": "vegetable", "vegan": True, "vegetarian": True, "gluten_free": True},
+    "leek": {"type": "vegetable", "vegan": True, "vegetarian": True, "gluten_free": True},
+    "avocado": {"type": "vegetable", "vegan": True, "vegetarian": True, "gluten_free": True},
+    "oregano": {"type": "vegetable", "vegan": True, "vegetarian": True, "gluten_free": True},
+    "thyme": {"type": "vegetable", "vegan": True, "vegetarian": True, "gluten_free": True},
+    "rosemary": {"type": "vegetable", "vegan": True, "vegetarian": True, "gluten_free": True},
+    "basil": {"type": "vegetable", "vegan": True, "vegetarian": True, "gluten_free": True},
+    "parsley": {"type": "vegetable", "vegan": True, "vegetarian": True, "gluten_free": True},
+    "cilantro": {"type": "vegetable", "vegan": True, "vegetarian": True, "gluten_free": True},
+    "coriander": {"type": "vegetable", "vegan": True, "vegetarian": True, "gluten_free": True},
+    "dill": {"type": "vegetable", "vegan": True, "vegetarian": True, "gluten_free": True},
+    "mint": {"type": "vegetable", "vegan": True, "vegetarian": True, "gluten_free": True},
+    "sage": {"type": "vegetable", "vegan": True, "vegetarian": True, "gluten_free": True},
+
+    # fruits
+    "lime": {"type": "fruit", "vegan": True, "vegetarian": True, "gluten_free": True},
+    "lemon": {"type": "fruit", "vegan": True, "vegetarian": True, "gluten_free": True},
+    "orange": {"type": "fruit", "vegan": True, "vegetarian": True, "gluten_free": True},
+    "grapefruit": {"type": "fruit", "vegan": True, "vegetarian": True, "gluten_free": True},
+    "cayenne pepper": {"type": "fruit", "vegan": True, "vegetarian": True, "gluten_free": True},
+    "cayenne": {"type": "fruit", "vegan": True, "vegetarian": True, "gluten_free": True},
     
     # protein
     "chicken": {"type": "protein", "vegan": False, "vegetarian": False, "gluten_free": True},
@@ -179,6 +230,16 @@ food_types = {
     "quail egg": {"type": "protein", "vegan": False, "vegetarian": True, "gluten_free": True},
     "ostrich egg": {"type": "protein", "vegan": False, "vegetarian": True, "gluten_free": True},
     "tofu": {"type": "protein", "vegan": True, "vegetarian": True, "gluten_free": True},
+    "veggie burger": {"type": "protein", "vegan": True, "vegetarian": True, "gluten_free": False},
+    "chicken stock": {"type": "protein", "vegan": False, "vegetarian": False, "gluten_free": True},
+    "beef stock": {"type": "protein", "vegan": False, "vegetarian": False, "gluten_free": True},
+    "fish stock": {"type": "protein", "vegan": False, "vegetarian": False, "gluten_free": True},
+    "bone stock": {"type": "protein", "vegan": False, "vegetarian": False, "gluten_free": True},
+    "turkey stock": {"type": "protein", "vegan": False, "vegetarian": False, "gluten_free": True},
+    "pork stock": {"type": "protein", "vegan": False, "vegetarian": False, "gluten_free": True},
+    "lamb stock": {"type": "protein", "vegan": False, "vegetarian": False, "gluten_free": True},
+    "meat stock": {"type": "protein", "vegan": False, "vegetarian": False, "gluten_free": True},
+    "seafood stock": {"type": "protein", "vegan": False, "vegetarian": False, "gluten_free": True},
     
     # dairy
     "milk": {"type": "dairy", "vegan": False, "vegetarian": True, "gluten_free": True},
@@ -193,14 +254,60 @@ food_types = {
     "feta cheese": {"type": "dairy", "vegan": False, "vegetarian": True, "gluten_free": True},
     "goat cheese": {"type": "dairy", "vegan": False, "vegetarian": True, "gluten_free": True},
     "blue cheese": {"type": "dairy", "vegan": False, "vegetarian": True, "gluten_free": True},
+    "monterey jack cheese": {"type": "dairy", "vegan": False, "vegetarian": True, "gluten_free": True},
+    "pepper jack cheese": {"type": "dairy", "vegan": False, "vegetarian": True, "gluten_free": True},
     "ricotta cheese": {"type": "dairy", "vegan": False, "vegetarian": True, "gluten_free": True},
     "cottage cheese": {"type": "dairy", "vegan": False, "vegetarian": True, "gluten_free": True},
     "cream cheese": {"type": "dairy", "vegan": False, "vegetarian": True, "gluten_free": True},
     "yogurt": {"type": "dairy", "vegan": False, "vegetarian": True, "gluten_free": True},
     "greek yogurt": {"type": "dairy", "vegan": False, "vegetarian": True, "gluten_free": True},
     "sour cream": {"type": "dairy", "vegan": False, "vegetarian": True, "gluten_free": True},
+    "fat free sour cream": {"type": "dairy", "vegan": False, "vegetarian": True, "gluten_free": True},
     "cream": {"type": "dairy", "vegan": False, "vegetarian": True, "gluten_free": True},
     "half and half": {"type": "dairy", "vegan": False, "vegetarian": True, "gluten_free": True},
+
+    # grains
+    "bread": {"type": "grain", "vegan": True, "vegetarian": True, "gluten_free": False},
+    "hamburger bun": {"type": "grain", "vegan": True, "vegetarian": True, "gluten_free": False},
+    "tortilla chip": {"type": "grain", "vegan": True, "vegetarian": True, "gluten_free": False},
+    "breadcrumb": {"type": "grain", "vegan": True, "vegetarian": True, "gluten_free": False},
+    "white bread": {"type": "grain", "vegan": True, "vegetarian": True, "gluten_free": False},
+    "whole wheat bread": {"type": "grain", "vegan": True, "vegetarian": True, "gluten_free": False},
+    "sourdough bread": {"type": "grain", "vegan": True, "vegetarian": True, "gluten_free": False},
+    "rice": {"type": "grain", "vegan": True, "vegetarian": True, "gluten_free": True},
+    "white rice": {"type": "grain", "vegan": True, "vegetarian": True, "gluten_free": True},
+    "brown rice": {"type": "grain", "vegan": True, "vegetarian": True, "gluten_free": True},
+    "jasmine rice": {"type": "grain", "vegan": True, "vegetarian": True, "gluten_free": True},
+    "basmati rice": {"type": "grain", "vegan": True, "vegetarian": True, "gluten_free": True},
+    "arborio rice": {"type": "grain", "vegan": True, "vegetarian": True, "gluten_free": True},
+    "calrose rice": {"type": "grain", "vegan": True, "vegetarian": True, "gluten_free": True},
+    "quinoa": {"type": "grain", "vegan": True, "vegetarian": True, "gluten_free": True},
+    "millet": {"type": "grain", "vegan": True, "vegetarian": True, "gluten_free": True},
+    "buckwheat": {"type": "grain", "vegan": True, "vegetarian": True, "gluten_free": True},
+    "amaranth": {"type": "grain", "vegan": True, "vegetarian": True, "gluten_free": True},
+    "sorghum": {"type": "grain", "vegan": True, "vegetarian": True, "gluten_free": True},
+    "teff": {"type": "grain", "vegan": True, "vegetarian": True, "gluten_free": True},
+    "oats": {"type": "grain", "vegan": True, "vegetarian": True, "gluten_free": False},
+    "barley": {"type": "grain", "vegan": True, "vegetarian": True, "gluten_free": False},
+    "pearled barley": {"type": "grain", "vegan": True, "vegetarian": True, "gluten_free": False},
+    "wheat": {"type": "grain", "vegan": True, "vegetarian": True, "gluten_free": False},
+    "whole wheat": {"type": "grain", "vegan": True, "vegetarian": True, "gluten_free": False},
+    "bulgur": {"type": "grain", "vegan": True, "vegetarian": True, "gluten_free": False},
+    "farro": {"type": "grain", "vegan": True, "vegetarian": True, "gluten_free": False},
+    "spelt": {"type": "grain", "vegan": True, "vegetarian": True, "gluten_free": False},
+    "couscous": {"type": "grain", "vegan": True, "vegetarian": True, "gluten_free": False},
+    "rye": {"type": "grain", "vegan": True, "vegetarian": True, "gluten_free": False},
+    "cornmeal": {"type": "grain", "vegan": True, "vegetarian": True, "gluten_free": True},
+    "polenta": {"type": "grain", "vegan": True, "vegetarian": True, "gluten_free": True},
+    "grits": {"type": "grain", "vegan": True, "vegetarian": True, "gluten_free": True},
+    "flour": {"type": "grain", "vegan": True, "vegetarian": True, "gluten_free": False},
+    "whole wheat flour": {"type": "grain", "vegan": True, "vegetarian": True, "gluten_free": False},
+    "pasta": {"type": "grain", "vegan": True, "vegetarian": True, "gluten_free": False},
+    "macaroni": {"type": "grain", "vegan": True, "vegetarian": True, "gluten_free": False},
+    "egg noodles": {"type": "grain", "vegan": False, "vegetarian": True, "gluten_free": False},
+    "tortilla": {"type": "grain", "vegan": True, "vegetarian": True, "gluten_free": False},
+    "flour tortilla": {"type": "grain", "vegan": True, "vegetarian": True, "gluten_free": False},
+    "corn tortilla": {"type": "grain", "vegan": True, "vegetarian": True, "gluten_free": True},
     
     # fat (oils)
     "oil": {"type": "fat", "vegan": True, "vegetarian": True, "gluten_free": True},
@@ -224,21 +331,12 @@ food_types = {
     "nutmeg": {"type": "seasoning", "vegan": True, "vegetarian": True, "gluten_free": True},
     "turmeric": {"type": "seasoning", "vegan": True, "vegetarian": True, "gluten_free": True},
     "ginger": {"type": "seasoning", "vegan": True, "vegetarian": True, "gluten_free": True},
-    "coriander": {"type": "seasoning", "vegan": True, "vegetarian": True, "gluten_free": True},
     "cardamom": {"type": "seasoning", "vegan": True, "vegetarian": True, "gluten_free": True},
     "clove": {"type": "seasoning", "vegan": True, "vegetarian": True, "gluten_free": True},
     "allspice": {"type": "seasoning", "vegan": True, "vegetarian": True, "gluten_free": True},
-    "oregano": {"type": "seasoning", "vegan": True, "vegetarian": True, "gluten_free": True},
-    "thyme": {"type": "seasoning", "vegan": True, "vegetarian": True, "gluten_free": True},
-    "rosemary": {"type": "seasoning", "vegan": True, "vegetarian": True, "gluten_free": True},
-    "basil": {"type": "seasoning", "vegan": True, "vegetarian": True, "gluten_free": True},
-    "parsley": {"type": "seasoning", "vegan": True, "vegetarian": True, "gluten_free": True},
-    "cilantro": {"type": "seasoning", "vegan": True, "vegetarian": True, "gluten_free": True},
-    "dill": {"type": "seasoning", "vegan": True, "vegetarian": True, "gluten_free": True},
-    "mint": {"type": "seasoning", "vegan": True, "vegetarian": True, "gluten_free": True},
-    "sage": {"type": "seasoning", "vegan": True, "vegetarian": True, "gluten_free": True},
     "chili powder": {"type": "seasoning", "vegan": True, "vegetarian": True, "gluten_free": True},
-    "cayenne": {"type": "seasoning", "vegan": True, "vegetarian": True, "gluten_free": True},
+    "mustard": {"type": "seasoning", "vegan": True, "vegetarian": True, "gluten_free": True},
+    "dijon mustard": {"type": "seasoning", "vegan": True, "vegetarian": True, "gluten_free": True},
     "red pepper flakes": {"type": "seasoning", "vegan": True, "vegetarian": True, "gluten_free": True},
     
     # sweeteners

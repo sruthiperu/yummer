@@ -1,19 +1,19 @@
 "use client"
 
-import {useState, SyntheticEvent} from "react"
+import {useState, SyntheticEvent, useEffect} from "react"
 import {useRouter} from "next/navigation"
+import "./search_bar.css"
 
 type SearchBarProps = {
   defaultValue?: string
   placeholder?: string
 }
 
-export default function SearchBar({
-  defaultValue = "",
-  placeholder = "chicken, pasta, broccoli, ...",
-}: SearchBarProps) {
+export default function SearchBar({defaultValue = "", placeholder = "chicken, pasta, broccoli, ..."}: SearchBarProps) {
   const [q, setQ] = useState(defaultValue)
   const router = useRouter()
+
+  useEffect(() => {setQ(defaultValue)}, [defaultValue])
 
   function handleSearch(e: SyntheticEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -27,10 +27,10 @@ export default function SearchBar({
   }
 
   return (
-    <form onSubmit={handleSearch} className="home_form">
+    <form onSubmit={handleSearch} className="search_form">
       <div className="search_row">
         <div className="search_input_wrapper">
-          <i className="fa-solid fa-magnifying-glass search_icon"></i>
+          <i className="fa-solid fa-magnifying-glass search_icon" />
           <input
             type="text"
             autoComplete="off"

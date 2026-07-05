@@ -4,22 +4,21 @@
     background: white;
     border: 1px solid #eee;
     border-radius: 12px;
-    padding: 16px;
+    padding: 16px 0 0;
     gap: 10px;
     transition: border-color 0.15s;
     cursor: pointer;
 }
-
 .card:hover {
-    border-color: #2D6A4F;
+    border-color: rgb(45, 106, 79);
 }
 
 .recipe_name {
-    margin: 0 0 4px;
+    margin: 0 16px 4px;
     line-height: 1.3;
     font-size: 15.5px;
     font-weight: 600;
-    color: #373737;
+    color: rgb(55, 55, 55);
 }
 
 .info {
@@ -27,20 +26,18 @@
     flex-wrap: wrap;
     color: #666;
     gap: 15px;
-    /* margin-bottom: 10px; */
     font-size: 13.5px;
+    padding: 0 16px;
 }
 
 .tags_box {
     display: flex;
     flex-wrap: wrap;
     gap: 6px;
-    /* margin-bottom: 5px; */
-    margin: 0;
+    margin: 0 16px 16px;
 }
-
 .tag {
-    background: #f0faf4;
+    background: rgb(240, 250, 244);
     color: #333;
     padding: 2px 8px;
     border: 1px solid #c8e6c9;
@@ -49,49 +46,43 @@
 }
 
 .ing_match {
-    /* margin-top: 8px; */
+    padding: 0 16px;
 }
 
 .match_pct {
-    color: #2D6A4F;
+    color: rgb(45, 106, 79);
     margin-bottom: 4px;
     font-size: 12px;
     font-weight: 500;
 }
-
 .progress_bar {
-    background: #eee;
+    background: rgb(238, 238, 238);
     height: 4px;
     border-radius: 2px;
     overflow: hidden;
 }
-
 .progress_fill {
     height: 100%;
     border-radius: 2px;
     transition: width 0.3s ease;
 }
-
 .progress_high {
-    background: #2D6A4F;
+    background: rgb(45, 106, 79);
 }
-
 .progress_medium {
-    background: #C77D27;
+    background: rgb(199, 125, 39);
 }
-
 .progress_low {
-    background: #B5451B;
+    background: rgb(181, 69, 27);
 }
 
 .missing_ings {
-    color: #999;
-    /* margin: 4px 0 0; */
+    color: rgb(153, 153, 153);
     font-size: 11px;
 }
 
 .relevance {
-    color: #bbb;
+    color: rgb(187, 187, 187);
     margin-top: 8px;
     font-size: 11px;
 }

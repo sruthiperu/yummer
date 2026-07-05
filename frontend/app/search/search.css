@@ -4,47 +4,11 @@
     padding: 24px;
 }
 
-/* search bar */
-.search_input_wrapper {
-    position: relative;
-    display: flex;
-    align-items: center;
-    flex: 1;
-    border: 1px solid rgb(190, 190, 190); 
-    border-radius: 40px;
-}
-
-
-.search_row {
-    display: flex;
-    align-items: center;
-    width: 100%;
-}
-
-.search_input {
-    padding: 12px 18px 12px 42px;
-    width: 100%;
-    height: auto;
-    color: rgb(40, 40, 40);
-    border: none;
-    outline: none;
-    background: transparent;
-    font-size: 16px;
-    border-radius: 40px;
-}
-
-.search_input::placeholder {
-    color: rgb(100, 100, 100);
-    opacity: 1;
-}
-.search_input_wrapper:focus-within {
-    border-color: rgb(66, 195, 237);
-}
-
 .res_header {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    margin-top: 8px;
     margin-bottom: 16px;
 }
 .res_count {

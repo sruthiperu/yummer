@@ -120,16 +120,6 @@ export default function HomePage() {
   
   return (
     <>
-      <nav className="navbar">
-        <div className="nav_cont">
-          <Link href="/" className="nav_logo">yummer</Link>
-
-          <a href={`${process.env.NEXT_PUBLIC_API_URL}/auth/google`} className="signin">
-            <i className="fa-regular fa-circle-user"></i>
-          </a>
-        </div>
-      </nav>
-
       <main className="home">
         <div className="title_wrap">
           <h1 className="home_title">

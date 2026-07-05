@@ -8,7 +8,7 @@ from sqlalchemy import select
 from app.database import SessionLocal
 from app.models.recipe import Recipe, Ingredient, RecipeIngredient
 
-from .normalize_ingredients import normalize_ingredient, get_flags
+from .normalize_ingredients import normalize_ingredient, get_flags, apply_flags
 from scripts.parse_recipe import parse_row
 
 
@@ -27,36 +27,42 @@ def get_ingredient(db_session, name):
         # add alias if name != canonical_name and not in the ingredient's aliases list already
         if name != canonical_name:
             ing_aliases = in_db.aliases if in_db.aliases is not None else []
-            if canonical_name not in ing_aliases:
-                ing_aliases.append(canonical_name)
+            if name not in ing_aliases:
+                ing_aliases.append(name)
                 in_db.aliases = ing_aliases
                 db_session.flush()
-        
+
+        if apply_flags(in_db, get_flags(canonical_name)):       # call apply_flags on existing rows
+            db_session.flush()
+
         return in_db
 
     flags = get_flags(canonical_name)
     ingredient = Ingredient(name=canonical_name, aliases=[name] if canonical_name != name else None,
-                            food_type=flags['type'], is_vegan=flags['vegan'], is_vegetarian=flags['vegetarian'], is_gluten_free=flags['gluten_free'])
+                            food_type=flags["type"], is_vegan=flags["vegan"], is_vegetarian=flags["vegetarian"], is_gluten_free=flags["gluten_free"])
 
     db_session.add(ingredient)
     db_session.flush()
     return ingredient
 
 
-def import_recipes(dataset_path, limit):
+def import_recipes(dataset_path, start, limit):
     """
     given: dataset_path (path to csv file) and limit (number of recipes to import into database)
     imports the first 'limit' number of recipes from dataset into database
     """
 
     df = pd.read_csv(dataset_path)
+    df = df.iloc[start:]
+    if limit is not None:
+        df = df.head(limit)
     # print(f"length of dataset: {len(df)}, limit: {limit}")
 
     db = SessionLocal()
     inserted, skipped, failed = 0, 0, 0
 
     try:
-        for i, row in df.head(limit).iterrows():
+        for i, row in df.iterrows():
 
             try:
                 recipe_data, ingredients_data = parse_row(row)
@@ -109,5 +115,5 @@ def import_recipes(dataset_path, limit):
 
 
 if __name__ == "__main__":
-    import_recipes("/Users/sruthiperumalla/Desktop/yummer/backend/data/final_dataset.csv", limit=1000)      # absolute path for now
+    import_recipes("/Users/sruthiperumalla/Desktop/yummer/backend/data/final_dataset.csv", start=1000, limit=None)      # absolute path for now
 

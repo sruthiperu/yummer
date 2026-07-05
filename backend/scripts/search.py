@@ -33,6 +33,8 @@ def _search(db: Session, query: str, filters: dict, page: int = 1, limit: int = 
 
 
     # apply filters
+    if filters.get("min_time"):
+        base = base.filter(Recipe.total_time >= filters["min_time"])
     if filters.get("max_time"):
         base = base.filter(Recipe.total_time <= filters["max_time"])
     if filters.get("max_calories"):
@@ -157,7 +159,7 @@ def search_by_ingredients(db: Session, ing_names: list[str], filters: dict = Non
         missing = get_missing_ingredients(db, r["id"], matched_ids)
 
         results.append({"id": r["id"], "name": r["name"], "total_time": r["total_time"], "nutrition": r["nutrition"], "tags": r["tags"],
-                        "link": r["link"], "matched_count": r["matched_count"], "total_ingredients": r["total_ingredients"], 
+                        "link": r["link"], "matched_count": r["matched_count"], "total_ingredients": r["total_ingredients"],
                         "user_match_pct": float(r["user_match_pct"]), "recipe_match_pct": float(r["recipe_match_pct"]), 
                         "ingredients": r["ingredients"], "missing_ingredients": missing})
 
@@ -217,7 +219,7 @@ def get_missing_ingredients(db: Session, recipe_id: int, matched_ing_ids: list[i
     return [row._mapping["name"] for row in missing]
 
 
-# Give user suggestions if their input isn't accepted
+# give user suggestions if their input isn't accepted
 def build_empty_result(reason: str):
     return {"results": [], "total": 0, "reason": reason, "suggestions": get_suggestion(reason)}
 

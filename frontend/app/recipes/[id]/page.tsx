@@ -2,9 +2,10 @@
 
 import React from 'react'
 import './page.css'
-import {useParams} from "next/navigation"       /* get url parameter; e.g. '1' in recipes/1 */
-import {useRecipe} from "@/lib/useRecipe" 
+import {useParams} from "next/navigation"
+import {useRecipe} from "@/lib/useRecipe"
 import {useState} from "react"
+import {ingredientTypeClass, INGREDIENT_LEGEND} from "@/lib/ingredientColors"
 
 export default function RecipePage() {
     const params = useParams()
@@ -56,7 +57,7 @@ export default function RecipePage() {
     return (
         <main className="styles">
 
-            { /* header */ }
+            {/* header */}
             <section className="recipe_header">
                 <h1 className="recipe_title">{displayRecipe.name}</h1>
 
@@ -71,33 +72,26 @@ export default function RecipePage() {
                     {recipe.link && (
                     <a
                         href={recipe.link.startsWith("http") ? recipe.link : `https://${recipe.link}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="meta_chip meta_chip--link"
+                        target="_blank" rel="noopener noreferrer" className="meta_chip meta_chip--link"
                     >
-                        <i className="fa-solid fa-arrow-up-right-from-square" />
-                        View original
+                        <i className="fa-solid fa-arrow-up-right-from-square"/>View original
                     </a>
                     )}
                 </div>
 
                 {displayRecipe.tags && displayRecipe.tags.length > 0 && (
                     <div className="tags_rec">
-                    {displayRecipe.tags.slice(0, 5).map((tag: string) => (
-                        <span key={tag} className="tag_rec">{tag}</span>
-                    ))}
+                    {displayRecipe.tags.slice(0, 5).map((tag: string) => (<span key={tag} className="tag_rec">{tag}</span>))}
                     </div>
                 )}
             </section>
             
-            { /* AI chat */ }
+            {/* AI chat */}
             <section className="chatbox">
                 <div className="chatbox_header">
                     <div className="chatbox_header_text">
                         <h2 className="chatbox_title">Modify this recipe</h2>
-                        <p className="chatbox_subtitle">
-                            Make it keto, gluten-free, higher in protein, adjust servings, or anything else.
-                        </p>
+                        <p className="chatbox_subtitle">Make it keto, gluten-free, higher in protein, adjust servings, or anything else.</p>
                     </div>
                 </div>
 
@@ -112,11 +106,7 @@ export default function RecipePage() {
                         className="chatbox_input"
                     />
                     <button onClick={handleModify} disabled={aiLoading || !message.trim()} className="change_btn">
-                        {aiLoading ? (
-                            <><i className="fa-solid fa-spinner fa-spin" />Loading...</>
-                        ) : (
-                            <><i className="fa-solid fa-wand-magic-sparkles" />Modify</>
-                        )}
+                        {aiLoading ? (<><i className="fa-solid fa-spinner fa-spin"/>Loading...</>) : (<><i className="fa-solid fa-wand-magic-sparkles"/>Modify</>)}
                     </button>
                 </div>
 
@@ -125,7 +115,7 @@ export default function RecipePage() {
                 {modifiedRecipe && (
                     <div className="success_msg">
                         <span className="success_text">
-                            <i className="fa-solid fa-circle-check" /> Recipe modified
+                            <i className="fa-solid fa-circle-check"/> Recipe modified
                         </span>
                         <button onClick={() => {
                             setModifiedRecipe(null) 
@@ -138,7 +128,7 @@ export default function RecipePage() {
                 )}
             </section>
 
-            { /* nutrition */ }
+            {/* nutrition */}
             {displayRecipe.nutrition && (
                 <section className="nutrition_info">
                     <h2 className="section_title">Nutrition <i className="fa-brands fa-nutritionix"></i></h2>
@@ -155,27 +145,38 @@ export default function RecipePage() {
                 </section>
             )}
 
-            { /* ingredients */ }
+            {/* ingredients */}
             <section className="ingredients">
                 <h2 className="ingredients_title">
                     Ingredients <i className="fa-solid fa-carrot" />
                 </h2>
+                <div className="ingredient_legend">
+                    {INGREDIENT_LEGEND.map(({ type, label }) => (<span key={type} className={`legend_item legend_item--${type}`}>{label}</span>))}
+                </div>
                 <ul className="ingredients_list">
-                    {displayRecipe.ingredients?.map((ing: any, i: number) => {
+                    {displayRecipe.ingredients?.map((ing: any) => {
                     const qty = [ing.quantity, ing.unit].filter(Boolean).join(" ")
                     const name = ing.name || ing.raw_ingredient
+                    const typeClass = ingredientTypeClass(ing.food_type)
 
                     return (
-                        <li key={i} className="ingredient_tile">
-                        {qty && (<span className="ingredient_qty">{qty}</span>)}
-                        <span className="ingredient_name">{name}</span>
+                        <li key={ing.id} className={`ingredient_tile ingredient_tile--${typeClass}`}>
+                            {qty ? (<span className={`ingredient_qty ingredient_qty--${typeClass}`}>{qty}</span>) : (
+                                <span
+                                    className={`ingredient_qty ingredient_qty--empty ingredient_qty--${typeClass}`}
+                                    aria-label="Up to user's discretion" data-tooltip="Up to user's discretion" tabIndex={0}
+                                >
+                                    <i className="fa-solid fa-minus" aria-hidden="true" />
+                                </span>
+                            )}
+                            <span className="ingredient_name">{name}</span>
                         </li>
                     )
                     })}
                 </ul>
             </section>
             
-            { /* directions */}
+            {/* directions */}
             <section className="directions">
                 <h2 className="directions_title"> Directions <i className="fa-solid fa-list-check" /></h2>
                 <ol className="directions_list">
@@ -187,7 +188,6 @@ export default function RecipePage() {
                     ))}
                 </ol>
             </section>
-
 
         </main>
 

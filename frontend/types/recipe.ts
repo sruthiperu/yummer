@@ -34,4 +34,5 @@ export type Ingredient = {
     quantity: string | null
     unit: string | null
     raw_ingredient: string | null
+    food_type?: string | null
 }

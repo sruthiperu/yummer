@@ -1,11 +1,18 @@
-# Takes one recipe (row) from final_dataset.csv and parses it into a dict (for database)
+# Takes one recipe (row) from final_dataset.csv and parses it into a dict (for the database)
 
 import ast      
 import pandas as pd
-import hashlib
-from ingredient_parser import parse_ingredient
+import re
 from datetime import datetime
+from ingredient_parser import parse_ingredient
+from scripts.ingredient_match import resolve_canonical_name
+from scripts.format_quantities import format_quantity, abbreviate_unit
 
+
+UNITS = (
+    r"cup|cups|tbsp|tsp|tablespoon|tablespoons|teaspoon|teaspoons|ounce|ounces|oz|lb|lbs|pound|pounds|g|gram|grams|kg|ml|l|kilogram|kilograms|milliliter|milliliters|liter|liters|"
+    r"can|cans|box|boxes|clove|cloves|pinch|dash|package|packages|slice|slices|piece|pieces|head|bunch|sprig|sprigs|stick|sticks"
+)
 
 def convert_str_to_list(s):
     """ 
@@ -28,21 +35,47 @@ def parse_time(t):
     except:
         return None
     
+def extract_ingredient_name(parsed):
+    """
+    pick the best ingredient name span from parser output.
+    joins all name parts; for multiple parts the joined string beats a single adjective span.
+    """
+    if not parsed or not parsed.name:
+        return None
+
+    parts = [n.text.strip() for n in parsed.name if getattr(n, "text", None) and n.text.strip()]
+    if not parts:
+        return None
+    if len(parts) == 1:
+        return parts[0]
+
+    joined = " ".join(parts)
+    longest = max(parts, key=len)
+    return joined if len(joined) >= len(longest) else longest
+
+
 def get_quantity(text):
     """ 
     get quantity of ingredient (e.g. "2" given "2 eggs")
     """
 
+    text = clean_ingredient_text(text)
+    if not text:
+        return None, None, None, None
+    
     try:
         res = parse_ingredient(text)
         quantity, unit = None, None
         if res.amount:
-            quantity = str(res.amount[0].quantity) if res.amount[0].quantity else None
-            unit = str(res.amount[0].unit) if res.amount[0].unit else None
+            raw = str(res.amount[0].quantity) if res.amount[0].quantity else None
+            quantity = format_quantity(raw)
+            unit = abbreviate_unit(str(res.amount[0].unit)) if res.amount[0].unit else None
         
-        ingredient = text
-        if res.name:
-            ingredient = res.name[0].text
+        ingredient = extract_ingredient_name(res)
+        
+        # try stripping units manually if parser fails
+        if not ingredient:
+            ingredient = strip_units(text)
         
         size = None
         if res.size:
@@ -50,7 +83,7 @@ def get_quantity(text):
         
         return quantity, unit, size, ingredient
     except:
-        return None, None, None, text
+        return None, None, None, strip_units(text)
 
 def parse_nutrition(info):
     """ 
@@ -85,49 +118,80 @@ def parse_row(row):
     given: list; return dict
     """
 
-    name = row['name']
-    
-    # parse ingredients
-    # foodcom_ingredients = convert_str_to_list(row['foodcom_ingredients'])
+    foodcom_ingredients = convert_str_to_list(row['foodcom_ingredients'])
     recipenlg_ingredients = convert_str_to_list(row['recipenlg_ingredients'])
-    
+
     # parse directions into list of dicts
     instructions = convert_str_to_list(row['directions'])
     directions = []
     for i, step in enumerate(instructions):
         directions.append({'step_num': i + 1, 'direction': step.strip()})
 
-    # parse total time
     total_time = parse_time(row['minutes'])
-
-    # ADD DIFFICULTY
-
-    # parse nutrition info
     nutrition = parse_nutrition(row['nutrition'])
-    # parse tags
     tags = convert_str_to_list(row['tags'])
-
-    # parse date
     date = parse_date(row['date'])
-
-
-    recipe_data = {'name': row['name'], 'directions': directions, 'total_time': total_time, 'nutrition': nutrition, 'tags': tags,
-                   'date': date, 'link': row['link']}
-    
-
+    recipe_data = {'name': row['name'], 'directions': directions, 'total_time': total_time, 'nutrition': nutrition, 'tags': tags, 'date': date, 'link': row['link']}
     ingredients_data = []
-    for text in recipenlg_ingredients:
-        if not text:
+    used_fc_indices = set()
+
+    for nlg_text in recipenlg_ingredients:
+        if not nlg_text:
             continue
 
-        quantity, unit, size, ing_name = get_quantity(text)
+        ing_name = resolve_canonical_name(
+            nlg_text, foodcom_ingredients, used_fc_indices
+        )
+        if not ing_name:
+            continue
 
-        if not ing_name: ing_name = text      # use original text when needed
-        
-        ingredients_data.append({'text': text, 'quantity': quantity, 'unit': unit, 'size': size, 'ingredient': ing_name})
+        quantity, unit, size, _ = get_quantity(nlg_text)
 
+        ingredients_data.append({
+            'text': nlg_text,
+            'quantity': quantity,
+            'unit': unit,
+            'size': size,
+            'ingredient': ing_name,
+        })
 
     return recipe_data, ingredients_data
+
+
+def clean_ingredient_text(text):
+    """
+    pre-clean recipenlg line before parsing quantity, name
+    """
+
+    if not text:
+        return None
+    
+    text = text.lower().strip()
+    text = re.split(r"\s+or\s+", text, maxsplit=1)[0]
+    text = re.sub(
+        r",\s*(for garnish|optional|to taste|divided|as needed|"
+        r"pressed and drained|pressed|drained|thawed|at room temperature)\s*$",
+        "", text)
+   
+    # remove leading size in parens (e.g. 1 (6 1/2 ounce) box of quinoa)
+    text = re.sub(r"^\d*\s*\([^)]+\)\s*", "", text)
+    text = re.sub(r"\s+", " ", text).strip()
+    
+    return text or None
+
+def strip_units(text):
+    """
+    strip leading quantity and unit when ingredient parser fails
+    """
+
+    if not text:
+        return None
+    text = text.strip()
+    stripped = re.sub(rf"^[\d\s./\-]+(?:{UNITS})\b\.?\s*", "", text, flags=re.IGNORECASE).strip()
+  
+    # handle lines that begin with an unit but not a number
+    stripped = re.sub(rf"^(?:{UNITS})\b\.?\s+", "", stripped, flags=re.IGNORECASE).strip()
+    return stripped or None
 
 
 if __name__ == "__main__":
@@ -149,21 +213,19 @@ if __name__ == "__main__":
         for i, recipenlg_text in enumerate(recipenlg_ingredients):
             total_ingredients_checked += 1
             
-            # Check for None values
+            # check for none values
             if recipenlg_text is None:
                 none_count += 1
                 recipes_with_none.append({'row': idx, 'recipe': name, 'ingredient_index': i, 'recipenlg': recipenlg_text})
     
-    print("\n" + "="*60)
     print("SCAN RESULTS")
-    print("="*60)
-    print(f"Rows scanned: {len(df)}")
-    print(f"Total ingredient positions checked: {total_ingredients_checked}")
-    print(f"Total None values found: {none_count}")
-    
+    print(f"rows scanned: {len(df)}")
+    print(f"total ingredient positions checked: {total_ingredients_checked}")
+    print(f"total None values found: {none_count}")
     if recipes_with_none:
-        print(f"\nFirst 20 None values:")
-        print("-"*60)
+        print(f"\nfirst 20 None values:")
         for item in recipes_with_none[:20]:
-            print(f"Row {item['row']}: '{item['recipe']}' - Ingredient {item['ingredient_index']}")
-            print(f"   recipenlg: {item['recipenlg']}\n")
+            print(f"row {item['row']}: '{item['recipe']}' - Ingredient {item['ingredient_index']}")
+            print(f"\trecipenlg: {item['recipenlg']}\n")
+
+

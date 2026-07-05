@@ -1,8 +1,8 @@
 "use client"
 
 import {Providers} from "./providers"
-
 import "./globals.css"
+import Navbar from "./nav_bar"
 
 import '@fortawesome/fontawesome-free/css/all.min.css';
 
@@ -15,7 +15,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <Providers>{children}</Providers>
+        <Providers>
+          <Navbar />
+          {children}
+        </Providers>
       </body>
     </html>
   )
