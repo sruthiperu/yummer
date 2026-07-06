@@ -8,8 +8,16 @@ class IngredientResponse(BaseModel):
     name: str
     quantity: str | None
     unit: str | None
+    container_size: str | None = None
     raw_ingredient: str | None
     food_type: str | None = None
+    allergens: list[str] | None = None
+    is_vegan: bool | None = None
+    is_vegetarian: bool | None = None
+    is_gluten_free: bool | None = None
+    is_vegan: bool | None = None
+    is_vegetarian: bool | None = None
+    is_gluten_free: bool | None = None
     class Config:
         from_attributes = True
 

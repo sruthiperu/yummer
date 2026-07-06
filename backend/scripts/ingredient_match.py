@@ -97,7 +97,9 @@ def nlg_line_not_ing(text):
     if not text or not str(text).strip():
         return True
 
-    text = str(text).strip()
+    from scripts.parse_recipe import clean_ingredient_text
+    cleaned = clean_ingredient_text(text)
+    text = cleaned or str(text).strip()
     lower = text.lower()
     if HEADER.match(lower):
         return True

@@ -22,9 +22,18 @@ patterns = [
     (r'\b(monterey|pepper)\s*jack\s*cheese\b', r'\1 jack cheese'),
     (r'\bcheese\b', 'cheese'),
 
+    # nut/seed butters (before generic butter)
+    (r'\b(?:(?:smooth|creamy|natural(?:[- ]style)?|chunky|crunchy|unsalted|salted|organic|low[- ]fat|no[- ]sugar[- ]added|old[- ]fashioned|super[- ]chunky|extra[- ]chunky|reduced[- ]fat)\s+)?(peanut|almond|cashew|sunflower|hazelnut|macadamia|walnut|pecan|pistachio)\s+butter\b', r'\1 butter'),
+
     # butter
     (r'\b(clarified|ghee|brown)\s*butter\b', r'\1 butter'),
-    (r'\b(unsalted|salted|organic|sweet cream|grade a|grade aa|grass[- ]?fed|european[- ]?style|cultured|whipped|plant[- ]?based)?\s*butter\b', 'butter'),
+    (r'\b(unsalted|salted|organic|sweet cream|grade a|grade aa|grass[- ]?fed|european[- ]?style|cultured|whipped|plant[- ]?based)\s+butter\b', 'butter'),
+    (r'^butter$', 'butter'),
+
+    # repair merged nut butters (glued forms, brand prefixes)
+    (r'\b(?:(?:smooth|creamy|natural(?:[- ]style)?|chunky|crunchy|unsalted|salted|organic|low[- ]fat|no[- ]sugar[- ]added|old[- ]fashioned|super[- ]chunky|extra[- ]chunky|extra[- ]crunchy|reduced[- ]fat|all[- ]natural)\s+)?(peanut|almond|cashew|sunflower|hazelnut|macadamia|walnut|pecan|pistachio)butter\b', r'\1 butter'),
+    (r'\b[\w\-\'\.]+\s+(peanut|almond|cashew|sunflower|hazelnut|macadamia|walnut|pecan|pistachio)\s+butter\b', r'\1 butter'),
+    (r'\b(peanut|almond|cashew|sunflower|hazelnut|macadamia|walnut|pecan|pistachio)butter\b', r'\1 butter'),
 
     # sour cream
     (r'\b(?:fat[- ]?free|light|reduced[- ]?fat|nonfat|non[- ]?fat)\s+sour cream\b', 'sour cream'),
@@ -35,6 +44,7 @@ patterns = [
     (r'\b(traditional)?\s*yogurt\b', 'yogurt'),
 
     # vegetables
+    (r'\bcanned\s+', ''),
     (r'\b(?:texas\s+)?sweet\s+onion\b', 'sweet onion'),
     (r'\b(vidalia|walla walla|spanish|yellow|white|brown|red|sweet)\s+onion\b', r'\1 onion'),
     (r'\b(green|spring|scallion)\s*onions?\b', 'green onion'),
@@ -52,6 +62,7 @@ patterns = [
     (r'\b(broccoli|cauliflower|asparagus|zucchini|cucumber|celery|carrot)\b', r'\1'),
     (r'\b(?:baby\s*)?arugulas?\b', 'arugula'),
     (r'\b(leek)s?\b', 'leek'),
+    (r'\b(?:(?:chopped|pitted|sliced|drained|stuffed|garlic[- ]?stuffed)\s+)*(?:(?:green|black|kalamata|spanish|ripe|pimento)\s+)*olives?\b(?:\s*\([^)]*\))?(?:\s+in\s+brine)?(?:\s+with\s+pimento)?(?! oil\b)', 'olive'),
 
     # mustard, buns, chips, breadcrumbs
     (r'\b(?:dijon|stoneground|stone[- ]ground|prepared|yellow|brown|whole[- ]grain|hot|spicy)\s+mustard\b', 'mustard'),
@@ -129,9 +140,18 @@ patterns = [
     (r'\b(lentil|pea)\b', r'\1'),
 
     # seasoning
-    (r'\b(table|sea|himalayan|pink|kosher)\s*salt\b', 'salt'),
+    (r'\b(?:red wine|white wine|apple cider|balsamic|rice wine|cider|distilled white|white|red wine|champagne)\s+vinegar\b', 'vinegar'),
+    (r'\bvinegar\b', 'vinegar'),
+    (r'\b(?:prepared\s+)?mayonnaise\b', 'mayonnaise'),
+    (r'\bmayo\b', 'mayonnaise'),
+    (r'\bsoy\s+sauce\b', 'soy sauce'),
+    (r'\bketchup\b', 'ketchup'),
+    (r'\bcornstarch\b', 'cornstarch'),
+    (r'\b(?:prepared\s+)?horseradish\b', 'horseradish'),
+    (r'\b(?:table|sea|himalayan|pink|kosher)\s*salt\b', 'salt'),
     (r'\b(red|green|black|white)\s*pepper\b', r'\1 pepper'),
-    (r'\b(oregano|thyme|rosemary|basil|parsley|cilantro|dill|mint|sage|bay)\s*(leaves?)?\b', r'\1'),
+    (r'\b(oregano|thyme|rosemary|basil|parsley|cilantro|dill|mint|sage)\s*(leaves?)?\b', r'\1'),
+    (r'\bbay\s+leaves?\b', 'bay leaf'),
     (r'\b(dried|fresh|ground|whole)\s+(\w+)\b', r'\2'),
 ]
 
@@ -151,13 +171,22 @@ food_types = {
     "roma tomato": {"type": "vegetable", "vegan": True, "vegetarian": True, "gluten_free": True},
     "cherry tomato": {"type": "vegetable", "vegan": True, "vegetarian": True, "gluten_free": True},
     "grape tomato": {"type": "vegetable", "vegan": True, "vegetarian": True, "gluten_free": True},
+    "stewed tomatoes": {"type": "vegetable", "vegan": True, "vegetarian": True, "gluten_free": True},
     "bell pepper": {"type": "vegetable", "vegan": True, "vegetarian": True, "gluten_free": True},
     "red bell pepper": {"type": "vegetable", "vegan": True, "vegetarian": True, "gluten_free": True},
     "green bell pepper": {"type": "vegetable", "vegan": True, "vegetarian": True, "gluten_free": True},
     "jalapeno": {"type": "vegetable", "vegan": True, "vegetarian": True, "gluten_free": True},
+    "jalapeno pepper": {"type": "vegetable", "vegan": True, "vegetarian": True, "gluten_free": True},
     "habanero": {"type": "vegetable", "vegan": True, "vegetarian": True, "gluten_free": True},
+    "habanero pepper": {"type": "vegetable", "vegan": True, "vegetarian": True, "gluten_free": True},
     "serrano": {"type": "vegetable", "vegan": True, "vegetarian": True, "gluten_free": True},
+    "serrano pepper": {"type": "vegetable", "vegan": True, "vegetarian": True, "gluten_free": True},
     "poblano": {"type": "vegetable", "vegan": True, "vegetarian": True, "gluten_free": True},
+    "poblano pepper": {"type": "vegetable", "vegan": True, "vegetarian": True, "gluten_free": True},
+    "anaheim pepper": {"type": "vegetable", "vegan": True, "vegetarian": True, "gluten_free": True},
+    "thai pepper": {"type": "vegetable", "vegan": True, "vegetarian": True, "gluten_free": True},
+    "cayenne pepper": {"type": "vegetable", "vegan": True, "vegetarian": True, "gluten_free": True},
+    "cayenne": {"type": "vegetable", "vegan": True, "vegetarian": True, "gluten_free": True},
     "lettuce": {"type": "vegetable", "vegan": True, "vegetarian": True, "gluten_free": True},
     "romaine lettuce": {"type": "vegetable", "vegan": True, "vegetarian": True, "gluten_free": True},
     "iceberg lettuce": {"type": "vegetable", "vegan": True, "vegetarian": True, "gluten_free": True},
@@ -189,19 +218,22 @@ food_types = {
     "rosemary": {"type": "vegetable", "vegan": True, "vegetarian": True, "gluten_free": True},
     "basil": {"type": "vegetable", "vegan": True, "vegetarian": True, "gluten_free": True},
     "parsley": {"type": "vegetable", "vegan": True, "vegetarian": True, "gluten_free": True},
+    "chives": {"type": "vegetable", "vegan": True, "vegetarian": True, "gluten_free": True},
     "cilantro": {"type": "vegetable", "vegan": True, "vegetarian": True, "gluten_free": True},
     "coriander": {"type": "vegetable", "vegan": True, "vegetarian": True, "gluten_free": True},
     "dill": {"type": "vegetable", "vegan": True, "vegetarian": True, "gluten_free": True},
     "mint": {"type": "vegetable", "vegan": True, "vegetarian": True, "gluten_free": True},
     "sage": {"type": "vegetable", "vegan": True, "vegetarian": True, "gluten_free": True},
+    "olive": {"type": "vegetable", "vegan": True, "vegetarian": True, "gluten_free": True},
+    "green olive": {"type": "vegetable", "vegan": True, "vegetarian": True, "gluten_free": True},
+    "black olive": {"type": "vegetable", "vegan": True, "vegetarian": True, "gluten_free": True},
+    "kalamata olive": {"type": "vegetable", "vegan": True, "vegetarian": True, "gluten_free": True},
 
     # fruits
     "lime": {"type": "fruit", "vegan": True, "vegetarian": True, "gluten_free": True},
     "lemon": {"type": "fruit", "vegan": True, "vegetarian": True, "gluten_free": True},
     "orange": {"type": "fruit", "vegan": True, "vegetarian": True, "gluten_free": True},
     "grapefruit": {"type": "fruit", "vegan": True, "vegetarian": True, "gluten_free": True},
-    "cayenne pepper": {"type": "fruit", "vegan": True, "vegetarian": True, "gluten_free": True},
-    "cayenne": {"type": "fruit", "vegan": True, "vegetarian": True, "gluten_free": True},
     
     # protein
     "chicken": {"type": "protein", "vegan": False, "vegetarian": False, "gluten_free": True},
@@ -333,12 +365,23 @@ food_types = {
     "ginger": {"type": "seasoning", "vegan": True, "vegetarian": True, "gluten_free": True},
     "cardamom": {"type": "seasoning", "vegan": True, "vegetarian": True, "gluten_free": True},
     "clove": {"type": "seasoning", "vegan": True, "vegetarian": True, "gluten_free": True},
+    "cloves": {"type": "seasoning", "vegan": True, "vegetarian": True, "gluten_free": True},
     "allspice": {"type": "seasoning", "vegan": True, "vegetarian": True, "gluten_free": True},
     "chili powder": {"type": "seasoning", "vegan": True, "vegetarian": True, "gluten_free": True},
     "mustard": {"type": "seasoning", "vegan": True, "vegetarian": True, "gluten_free": True},
     "dijon mustard": {"type": "seasoning", "vegan": True, "vegetarian": True, "gluten_free": True},
     "red pepper flakes": {"type": "seasoning", "vegan": True, "vegetarian": True, "gluten_free": True},
-    
+    "vinegar": {"type": "seasoning", "vegan": True, "vegetarian": True, "gluten_free": True},
+    "soy sauce": {"type": "seasoning", "vegan": True, "vegetarian": True, "gluten_free": False},
+    "cornstarch": {"type": "grain", "vegan": True, "vegetarian": True, "gluten_free": True},
+    "horseradish": {"type": "vegetable", "vegan": True, "vegetarian": True, "gluten_free": True},
+    "mayonnaise": {"type": "fat", "vegan": False, "vegetarian": True, "gluten_free": True},
+    "peanut butter": {"type": "fat", "vegan": True, "vegetarian": True, "gluten_free": True},
+    "almond butter": {"type": "fat", "vegan": True, "vegetarian": True, "gluten_free": True},
+    "cashew butter": {"type": "fat", "vegan": True, "vegetarian": True, "gluten_free": True},
+    "hazelnut butter": {"type": "fat", "vegan": True, "vegetarian": True, "gluten_free": True},
+    "ketchup": {"type": "seasoning", "vegan": True, "vegetarian": True, "gluten_free": True},
+
     # sweeteners
     "sugar": {"type": "sweetener", "vegan": True, "vegetarian": True, "gluten_free": True},
     "brown sugar": {"type": "sweetener", "vegan": True, "vegetarian": True, "gluten_free": True},
@@ -361,6 +404,7 @@ allergens = {
     
     # eggs
     "egg": ["eggs"], "duck egg": ["eggs"], "quail egg": ["eggs"],
+    "mayonnaise": ["eggs"],
     
     # fish
     "fish": ["fish"], "salmon": ["fish"], "tuna": ["fish"], "cod": ["fish"], "trout": ["fish"], "mackerel": ["fish"],
@@ -377,7 +421,9 @@ allergens = {
     "coconut": ["tree nuts"], "coconut oil": ["tree nuts"],
     
     # peanuts
-    "peanut": ["peanuts"], "peanut oil": ["peanuts"],
+    "peanut": ["peanuts"], "peanut oil": ["peanuts"], "peanut butter": ["peanuts"],
+    "almond butter": ["tree nuts"], "cashew butter": ["tree nuts"],
+    "hazelnut butter": ["tree nuts"],
     
     # wheat/gluten
     "wheat": ["wheat", "gluten"], "bread": ["wheat", "gluten"], "pasta": ["wheat", "gluten"], "noodles": ["wheat", "gluten"],

@@ -10,7 +10,8 @@ UNITS = (
     r"pinch|dash|can|cans|clove|cloves|package|packages|slice|slices|"
     r"piece|pieces|head|bunch|sprig|sprigs|stick|sticks"
 )
-MERGED = {"sweetonion": "sweet onion", "hashbrown": "hash brown", "hashbrownpotato": "hash brown potato", "greenonion": "green onion", "redonion": "red onion", "basmatirice": "basmati rice"}
+MERGED = {"sweetonion": "sweet onion", "hashbrown": "hash brown", "hashbrownpotato": "hash brown potato", "greenonion": "green onion", "redonion": "red onion", "basmatirice": "basmati rice", "chickenpiec": "chicken", "chickenpiece": "chicken", "chickene": "chicken", "canned stewed tomatoes": "stewed tomatoes", "canned stewed tomato": "stewed tomatoes", "chif": "chives", "clof": "cloves"}
+UNCHANGED_PLURALS = frozenset({"chives", "cloves"})
 
 
 def normalize_ingredient(name):
@@ -25,15 +26,21 @@ def normalize_ingredient(name):
     for pattern, canonical in patterns:
         name = re.sub(pattern, canonical, name).strip()
 
+    name = re.sub(r"\s+(pieces?|pcs?)\s*$", "", name)
+    name = re.sub(r"^(\w+)(pieces?|piec)$", r"\1", name)
+    if name in UNCHANGED_PLURALS or any(name.endswith(f" {p}") for p in UNCHANGED_PLURALS):
+        return name.strip()
+
+    name = re.sub(r"\bleaves\b", "leaf", name)
+
     # make plural ingredients singular
-    if name.endswith("ves"):
-        name = name[:-3] + "f"
-    elif name.endswith("ies"):
+    if name.endswith("ies"):
         name = name[:-3] + "y"
-    elif name.endswith("es") and len(name) > 4 and not name.endswith(("bles", "ches", "ges", "les", "mes")):
+    elif name.endswith("es") and len(name) > 4 and not name.endswith(("bles", "ches", "ges", "les", "mes", "ces")):
         name = name[:-2]
     elif name.endswith("s") and len(name) > 3 and not name.endswith(("ss", "us", "is")):
         name = name[:-1]
+    # name = re.sub(r"\bstewed tomato\b", "stewed tomatoes", name)
 
     return name.strip()
 
@@ -48,22 +55,29 @@ def get_flags(name):
     """
     given: string (ingredient's canonical form); returns food type and diet flags
     """
-    default_vals = {"type": "other", "vegan": False, "vegetarian": False, "gluten_free": False, "allergens": []}
+    default_vals = {"type": "other", "vegan": None, "vegetarian": None, "gluten_free": None, "allergens": []}
 
     if not name:
         return default_vals.copy()
 
     name = normalize_ingredient(name)
+    flags = default_vals.copy()
 
     if name in food_types:
-        return _flags_from_key(name, name)
+        flags = _flags_from_key(name, name)
+    else:
+        for key in sorted(food_types, key=len, reverse=True):
+            if name == key or name.endswith(" " + key):
+                flags = _flags_from_key(name, key)
+                break
 
-    # longest-key suffix match: "mexican oregano" -> "oregano"
-    for key in sorted(food_types, key=len, reverse=True):
-        if name == key or name.endswith(" " + key):
-            return _flags_from_key(name, key)
+    resolved = get_allergens(name)
+    if resolved:
+        flags["allergens"] = list(dict.fromkeys(resolved + (flags.get("allergens") or [])))
+    else:
+        flags["allergens"] = flags.get("allergens") or []
 
-    return default_vals.copy()
+    return flags
 
 
 def apply_flags(ingredient, flags):
@@ -85,6 +99,11 @@ def apply_flags(ingredient, flags):
     if ingredient.is_gluten_free != flags["gluten_free"]:
         ingredient.is_gluten_free = flags["gluten_free"]
         changed = True
+    
+    new_allergens = flags.get("allergens") or None
+    if ingredient.allergens != new_allergens:
+        ingredient.allergens = new_allergens
+        changed = True
 
     return changed
 
@@ -105,23 +124,16 @@ def pre_clean_ingredient(name):
     name = re.sub(rf"^[\d\s./\-]+\s+", "", name)
 
     # formatting error: "lime , juice of" / "lemon, rind of" / "lime, juice and zest of" -> change to fruit noun
-    name = re.sub(
-        r"\b(lemon|lime|orange|grapefruit)s?\s*,?\s*"
-        r"(?:juice and (?:zest|rind) of|juice and rind of|rind of|juice of|zest of)\b", r"\1", name)
-    name = re.sub(
-        r"\b(lemon|lime|orange|grapefruit)\s*,?\s*(?:juice|zest)\s+of\b",
-        r"\1", name)
+    name = re.sub(r"\b(lemon|lime|orange|grapefruit)s?\s*,?\s*"
+                  r"(?:juice and (?:zest|rind) of|juice and rind of|rind of|juice of|zest of)\b", r"\1", name)
+    name = re.sub(r"\b(lemon|lime|orange|grapefruit)\s*,?\s*(?:juice|zest)\s+of\b", r"\1", name)
     name = re.sub(r",\s*(?:juice|zest)\s+of\b", "", name)
 
-    for bad, good in MERGED.items():
+    for bad, good in sorted(MERGED.items(), key=lambda x: len(x[0]), reverse=True):     # process longer phrase first
         if bad in name: name = name.replace(bad, good)
 
-    # temperature/state before broth/stock: "hot chicken broth" -> "chicken broth"
-    name = re.sub(
-        r"\b(hot|warm|cold|boiling)\s+(?=(?:chicken|beef|vegetable|fish|bone)\s+(?:broth|stock)\b)",
-        "",
-        name,
-    )
+    # temp/state before broth/stock; ex. "hot chicken broth" -> "chicken broth"
+    name = re.sub(r"\b(hot|warm|cold|boiling)\s+(?=(?:chicken|beef|vegetable|fish|bone)\s+(?:broth|stock)\b)", "", name)
     name = re.sub(r"\s+", " ", name).strip()
 
     return name.strip()
@@ -132,6 +144,7 @@ def get_allergens(name):
     if name in allergens: return allergens[name]
 
     for key in sorted(allergens, key=len, reverse=True):
-        if name == key or name.endswith(" " + key): return allergens[key]
+        if name == key or name.endswith(" " + key): 
+            return allergens[key]
     
     return []

@@ -55,6 +55,7 @@ class RecipeIngredient(Base):
     ingredient_id = Column(Integer, ForeignKey("ingredients.id"), nullable=False)
     quantity = Column(String, nullable=True)            # parsed
     unit = Column(String, nullable=True) 
+    container_size = Column(String, nullable=True)      # e.g. "14 oz" for "1 (14 ounce) can ..."
     raw_ingredient = Column(String, nullable=True)     # original text from Recipe_NLG
 
 

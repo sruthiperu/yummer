@@ -118,9 +118,9 @@ def remap_ingredients(csv_path, commit=False, limit=None, sample_size=50):
 
                 old_name = ingredient_names.get(ri.ingredient_id)
                 new_ing = resolve_ingredient(canonical)
-                quantity, unit, _, _ = cached_get_quantity(nlg)
+                quantity, unit, container_size, _ = cached_get_quantity(nlg)
 
-                if old_name == new_ing.name and ri.quantity == quantity and ri.unit == unit:
+                if (old_name == new_ing.name and ri.quantity == quantity and ri.unit == unit and ri.container_size == container_size):
                     stats["unchanged"] += 1
                     continue
 
@@ -136,6 +136,7 @@ def remap_ingredients(csv_path, commit=False, limit=None, sample_size=50):
                     ri.ingredient_id = new_ing.id
                     ri.quantity = quantity
                     ri.unit = unit
+                    ri.container_size = container_size
                     ingredient_names[ri.ingredient_id] = new_ing.name
 
             if commit:

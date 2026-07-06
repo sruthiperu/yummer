@@ -6,6 +6,18 @@ import {useParams} from "next/navigation"
 import {useRecipe} from "@/lib/useRecipe"
 import {useState} from "react"
 import {ingredientTypeClass, INGREDIENT_LEGEND} from "@/lib/ingredientColors"
+import {displayAllergens, allergenContainsText} from "@/lib/allergenIcons"
+import {displayDietaryIcons} from "@/lib/dietaryIcons"
+
+function formatNutritionWhole(n: number) {
+    return `${Math.ceil(n)}`
+}
+function formatNutritionGrams(n: number) {
+    return `${Math.ceil(n)} g`
+}
+function formatNutritionGramsDecimal(n: number) {
+    return `${Number(n.toFixed(1))} g`
+}
 
 export default function RecipePage() {
     const params = useParams()
@@ -61,29 +73,38 @@ export default function RecipePage() {
             <section className="recipe_header">
                 <h1 className="recipe_title">{displayRecipe.name}</h1>
 
-                <div className="recipe_meta">
-                    {displayRecipe.total_time && (
-                    <span className="meta_chip meta_chip--time">
-                        <i className="fa-regular fa-clock" />
-                        {displayRecipe.total_time} min
-                    </span>
-                    )}
+                <div className="recipe_header_footer">
+                    <div className="recipe_meta">
+                        {displayRecipe.total_time && (
+                        <span className="meta_chip meta_chip--time">
+                            <i className="fa-regular fa-clock" />
+                            {displayRecipe.total_time} min
+                        </span>
+                        )}
 
-                    {recipe.link && (
-                    <a
-                        href={recipe.link.startsWith("http") ? recipe.link : `https://${recipe.link}`}
-                        target="_blank" rel="noopener noreferrer" className="meta_chip meta_chip--link"
-                    >
-                        <i className="fa-solid fa-arrow-up-right-from-square"/>View original
-                    </a>
+                        {displayRecipe.servings && (
+                        <span className="meta_chip meta_chip--servings">
+                            <i className="fa-solid fa-user-group" />
+                            {displayRecipe.servings} {displayRecipe.servings === 1 ? "serving" : "servings"}
+                        </span>
+                        )}
+
+                        {recipe.link && (
+                        <a
+                            href={recipe.link.startsWith("http") ? recipe.link : `https://${recipe.link}`}
+                            target="_blank" rel="noopener noreferrer" className="meta_chip meta_chip--link"
+                        >
+                            <i className="fa-solid fa-arrow-up-right-from-square"/>View original
+                        </a>
+                        )}
+                    </div>
+
+                    {displayRecipe.tags && displayRecipe.tags.length > 0 && (
+                        <div className="tags_rec">
+                        {displayRecipe.tags.slice(0, 5).map((tag: string) => (<span key={tag} className="tag_rec">{tag}</span>))}
+                        </div>
                     )}
                 </div>
-
-                {displayRecipe.tags && displayRecipe.tags.length > 0 && (
-                    <div className="tags_rec">
-                    {displayRecipe.tags.slice(0, 5).map((tag: string) => (<span key={tag} className="tag_rec">{tag}</span>))}
-                    </div>
-                )}
             </section>
             
             {/* AI chat */}
@@ -131,14 +152,14 @@ export default function RecipePage() {
             {/* nutrition */}
             {displayRecipe.nutrition && (
                 <section className="nutrition_info">
-                    <h2 className="section_title">Nutrition <i className="fa-brands fa-nutritionix"></i></h2>
+                    <h2 className="nutrition_title">Nutrition <i className="fa-brands fa-nutritionix"></i></h2>
                     <div className="nutrition_layout">
-                        {[{label: "Calories", value: displayRecipe.nutrition.calories}, {label: "Protein", value: `${displayRecipe.nutrition.protein}g`},
-                        {label: "Carbs", value: `${displayRecipe.nutrition.carbs}g`}, {label: "Fat", value: `${displayRecipe.nutrition.total_fat}g`},
-                        {label: "Sugar", value: `${displayRecipe.nutrition.sugar}g`}].map(({ label, value }) => (
+                        {[{label: "Calories", value: formatNutritionWhole(displayRecipe.nutrition.calories)}, {label: "Protein", value: formatNutritionGramsDecimal(displayRecipe.nutrition.protein)},
+                        {label: "Carbs", value: formatNutritionGrams(displayRecipe.nutrition.carbs)}, {label: "Fat", value: formatNutritionGrams(displayRecipe.nutrition.total_fat)},
+                        {label: "Sugar", value: formatNutritionGrams(displayRecipe.nutrition.sugar)}].map(({ label, value }) => (
                             <div key={label} className={"nutrition_card"}>
-                                <div className="nutrition_val">{value}</div>
                                 <div className="nutrition_label">{label}</div>
+                                <div className="nutrition_val">{value}</div>
                             </div>
                         ))}
                     </div>
@@ -155,21 +176,38 @@ export default function RecipePage() {
                 </div>
                 <ul className="ingredients_list">
                     {displayRecipe.ingredients?.map((ing: any) => {
-                    const qty = [ing.quantity, ing.unit].filter(Boolean).join(" ")
-                    const name = ing.name || ing.raw_ingredient
+                    const qtyParts = [ing.quantity, ing.unit].filter(Boolean)
+                    const qty = ing.container_size
+                        ? `${qtyParts.join(" ")} (${ing.container_size})`
+                        : qtyParts.join(" ")
+                    const name = (ing.name && ing.name.trim()) || "Unknown ingredient"
                     const typeClass = ingredientTypeClass(ing.food_type)
+                    const allergens = displayAllergens(ing.allergens)
+                    const allergenTooltip = allergenContainsText(allergens)
+                    const dietaryIcons = displayDietaryIcons(ing)
 
                     return (
                         <li key={ing.id} className={`ingredient_tile ingredient_tile--${typeClass}`}>
                             {qty ? (<span className={`ingredient_qty ingredient_qty--${typeClass}`}>{qty}</span>) : (
-                                <span
-                                    className={`ingredient_qty ingredient_qty--empty ingredient_qty--${typeClass}`}
-                                    aria-label="Up to user's discretion" data-tooltip="Up to user's discretion" tabIndex={0}
-                                >
+                                <span className={`ingredient_qty ingredient_qty--empty ingredient_qty--${typeClass}`} aria-label="Up to user's discretion" data-tooltip="Up to user's discretion" tabIndex={0}>
                                     <i className="fa-solid fa-minus" aria-hidden="true" />
                                 </span>
                             )}
                             <span className="ingredient_name">{name}</span>
+                            {(allergens.length > 0 || dietaryIcons.length > 0) && (
+                                <div className="ingredient_tile_icons">
+                                    {allergens.length > 0 && (
+                                        <span className="allergen_icon" data-tooltip={allergenTooltip} aria-label={allergenTooltip} tabIndex={0}>
+                                            <span className="material-symbols-outlined" aria-hidden="true">allergies</span>
+                                        </span>
+                                    )}
+                                    {dietaryIcons.map((d) => (
+                                        <span key={d.id} className={`dietary_icon dietary_icon--${d.id}`} data-tooltip={d.label} aria-label={d.label} tabIndex={0}>
+                                            <i className={`fa-solid ${d.iconClass}`} aria-hidden="true" />
+                                        </span>
+                                    ))}
+                                </div>
+                            )}
                         </li>
                     )
                     })}

@@ -9,7 +9,7 @@ from app.database import SessionLocal
 from app.models.recipe import Recipe, Ingredient, RecipeIngredient
 
 from .normalize_ingredients import normalize_ingredient, get_flags, apply_flags
-from scripts.parse_recipe import parse_row
+from scripts.parse_recipe import parse_row, load_servings_by_recipe_id
 
 
 def get_ingredient(db_session, name):
@@ -19,6 +19,8 @@ def get_ingredient(db_session, name):
     """
 
     canonical_name = normalize_ingredient(name)
+    if not canonical_name:
+        return None
 
     # search for ingredient's canonical form in database
     in_db = db_session.execute(select(Ingredient).where(Ingredient.name == canonical_name)).scalar_one_or_none()
@@ -39,7 +41,8 @@ def get_ingredient(db_session, name):
 
     flags = get_flags(canonical_name)
     ingredient = Ingredient(name=canonical_name, aliases=[name] if canonical_name != name else None,
-                            food_type=flags["type"], is_vegan=flags["vegan"], is_vegetarian=flags["vegetarian"], is_gluten_free=flags["gluten_free"])
+                            food_type=flags["type"], is_vegan=flags["vegan"], is_vegetarian=flags["vegetarian"],
+                            is_gluten_free=flags["gluten_free"], allergens=flags["allergens"] or None)
 
     db_session.add(ingredient)
     db_session.flush()
@@ -56,7 +59,8 @@ def import_recipes(dataset_path, start, limit):
     df = df.iloc[start:]
     if limit is not None:
         df = df.head(limit)
-    # print(f"length of dataset: {len(df)}, limit: {limit}")
+
+    servings_by_id = load_servings_by_recipe_id("data/recipes.csv")
 
     db = SessionLocal()
     inserted, skipped, failed = 0, 0, 0
@@ -65,7 +69,7 @@ def import_recipes(dataset_path, start, limit):
         for i, row in df.iterrows():
 
             try:
-                recipe_data, ingredients_data = parse_row(row)
+                recipe_data, ingredients_data = parse_row(row, servings_by_id)
                 if not recipe_data or not ingredients_data: 
                     skipped += 1
                     continue
@@ -86,7 +90,8 @@ def import_recipes(dataset_path, start, limit):
 
                     # link recipe and ingredient
                     link = RecipeIngredient(recipe_id=recipe.id, ingredient_id=ing.id, quantity=ing_data.get('quantity'), 
-                                            unit=ing_data.get('unit'), raw_ingredient=ing_data.get('text'))
+                                            unit=ing_data.get('unit'), container_size=ing_data.get('container_size'),
+                                            raw_ingredient=ing_data.get('text'))
                     db.add(link)
                 inserted += 1
 

@@ -57,6 +57,10 @@ def renormalize_ingredients(commit=False, sample_size=40):
         for ing, new_name in plans:
             old_name = ing.name
 
+            if not new_name:
+                stats["skipped_empty"] += 1
+                continue
+
             if new_name == old_name:
                 flags = get_flags(new_name)
                 if ((ing.food_type or "other") != flags["type"] or ing.is_vegan != flags["vegan"]

@@ -21,12 +21,11 @@ def audit_ingredients(full=False, strict=False, sample_size=30):
     stats = defaultdict(int)
     unnormalized = Counter()
     stale_types = Counter()
-    bad_pattern_hits = Counter()
+    delete_pattern_hits = Counter()
     other_linked = Counter()
 
     try:
-        rows = db.execute(
-            select(Recipe.id, Recipe.name, Ingredient.id, Ingredient.name, Ingredient.food_type)
+        rows = db.execute(select(Recipe.id, Recipe.name, Ingredient.id, Ingredient.name, Ingredient.food_type)
             .join(RecipeIngredient, RecipeIngredient.recipe_id == Recipe.id)
             .join(Ingredient, Ingredient.id == RecipeIngredient.ingredient_id).order_by(Recipe.id)).all()
 
@@ -51,8 +50,8 @@ def audit_ingredients(full=False, strict=False, sample_size=30):
 
             for pat in DELETE_PATTERNS:
                 if re.search(pat, ing_name):
-                    stats["bad_pattern_hits"] += 1
-                    bad_pattern_hits[ing_name] += 1
+                    stats["delete_pattern_hits"] += 1
+                    delete_pattern_hits[ing_name] += 1
                     recipes_with_issues.add(recipe_id)
                     break
 
@@ -73,23 +72,19 @@ def audit_ingredients(full=False, strict=False, sample_size=30):
         if unnormalized:
             print(f"\ntop unnormalized names (up to {sample_size}):")
             for name, count in unnormalized.most_common(sample_size):
-                print(f"  {name!r} ({count} links) -> {normalize_ingredient(name)!r}")
-
+                print(f"\t{name!r} ({count} links) -> {normalize_ingredient(name)!r}")
         if stale_types:
             print(f"\ntop stale food_types (up to {sample_size}):")
             for label, count in stale_types.most_common(sample_size):
-                print(f"  {label} ({count} links)")
-
-        if bad_pattern_hits:
+                print(f"\t{label} ({count} links)")
+        if delete_pattern_hits:
             print(f"\ndelete pattern hits (up to {sample_size}):")
-            for name, count in bad_pattern_hits.most_common(sample_size):
-                print(f"  {name!r} ({count} links)")
-
+            for name, count in delete_pattern_hits.most_common(sample_size):
+                print(f"\t{name!r} ({count} links)")
         if full and other_linked:
             print(f"\ntop 'other' linked ingredients (not errors, up to {sample_size}):")
             for name, count in other_linked.most_common(sample_size):
-                print(f"  {name!r} ({count} links)")
-
+                print(f"\t{name!r} ({count} links)")
         print()
 
         has_issues = stats["unnormalized_names"] or stats["stale_food_types"]

@@ -50,9 +50,7 @@ RecipeCardProps) {
 
             <div className="info">
                 {total_time && <span><i className="fa-regular fa-alarm-clock"></i> {total_time} min</span>}
-                {nutrition?.calories && (
-                    <span><i className="fa-brands fa-nutritionix"></i> {Math.round(nutrition.calories)} cal</span>
-                )}
+                {nutrition?.calories && (<span><i className="fa-brands fa-nutritionix"></i> {Math.ceil(nutrition.calories)} cal</span>)}
             </div>
 
             {user_match_pct !== undefined && (

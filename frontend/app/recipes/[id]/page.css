@@ -12,69 +12,106 @@
 
 /* header */
 .recipe_header {
-  margin-bottom: 8px;
-  padding-bottom: 20px;
-  border-bottom: 1px solid rgba(30, 180, 225, 0.1);
+  margin-bottom: 12px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid rgba(30, 180, 225, 0.12);
 }
 
 .recipe_title {
-  margin: 0 0 20px;
-  font-size: 25px;
+  margin: 0 auto 18px;
+  font-size: 30px;
   font-weight: 700;
-  color: rgb(70, 70, 70);
-  /* text-align: center; */
+  color: rgb(60, 60, 60);
+  letter-spacing: 0.05em;
+  line-height: 1.22;
+  max-width: 95%;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.recipe_header_footer {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+  margin-top: 14px;
+  width: 100%;
 }
 
 .recipe_meta {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 14px;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 0;
+  width: 100%;
 }
+
 .meta_chip {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 14px;
+  gap: 7px;
+  padding: 7px 12px;
   border-radius: 999px;
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 600;
   line-height: 1;
   text-decoration: none;
-  transition: background 0.3s, border-color 0.3s, color 0.3s, transform 0.3s;
+  transition: background 0.2s, border-color 0.2s, color 0.2s, transform 0.2s;
 }
 .meta_chip i {
-  font-size: 13px;
+  font-size: 14px;
 }
 .meta_chip--time {
-  border: 1px solid rgb(220, 220, 220);
+  border: 1px solid rgba(30, 180, 225, 0.1);
+  background: rgba(30, 180, 225, 0.08);
+  color: rgb(100, 100, 100);
+  font-weight: 600;
+}
+.meta_chip--time i {
+  font-size: 14px;
+}
+.meta_chip--servings {
+  border: 1px solid rgba(30, 180, 225, 0.1);
+  background: rgba(30, 180, 225, 0.08);
+  color: rgb(100, 100, 100);
+  font-weight: 600;
+}
+.meta_chip--servings i {
+  font-size: 12px;
 }
 .meta_chip--link {
-  border: 1px solid rgb(220, 220, 220);
+  border: 1px solid rgba(30, 180, 225, 0.1);
+  background: white;
+  color: rgb(100, 100, 100);
+  font-weight: 600;
 }
 .meta_chip--link:hover {
   color: rgb(8, 135, 175);
-  border-color: rgba(30, 180, 225, 0.5);
-  background: rgba(30, 180, 225, 0.05);
-  transform: translateY(-1px);
+  border-color: rgba(30, 180, 225, 0.25);
+  background: rgba(30, 180, 225, 0.08);
+  transform: translateY(-2px);
 }
 
 .tags_rec {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  margin: 0 0 14px;
+  justify-content: center;
+  gap: 6px;
+  margin: 0;
+  width: 100%;
 }
-
 .tag_rec {
-  background: rgb(250, 250, 250);
-  border: 1px solid rgb(230, 232, 234);
+  background: white;
+  border: 1px solid rgba(30, 180, 225, 0.1);
   border-radius: 999px;
-  padding: 5px 12px;
-  font-size: 12px;
-  font-weight: 500;
-  color: rgb(80, 80, 80);
+  padding: 4px 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgb(110, 110, 110);
+  letter-spacing: 0.02em;
+  /* line-height: 1.2; */
 }
 
 /* AI chatbox */
@@ -254,37 +291,54 @@
 }
 
 /* section titles */
-.section_title, .ingredients_title, .directions_title {
+.nutrition_title, .ingredients_title, .directions_title {
   margin: 28px 0 14px;
-  font-size: 20px;
+  font-size: 21px;
   font-weight: 600;
   color: rgb(45, 45, 45);
 }
 
 /* nutrition */
+.nutrition_info {
+  margin-bottom: 4px;
+}
 .nutrition_layout {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
-  margin: 4px 0 8px;
+  justify-content: flex-start;
+  gap: 10px;
+  margin: 2px 0 8px;
 }
 .nutrition_card {
-  background: rgba(30, 180, 225, 0.1);
-  border-radius: 10px;
-  padding: 12px 18px;
-  min-width: 76px;
+  flex: 0 0 auto;
+  width: 100px;
+  background: white;
+  border: 1px solid rgba(30, 180, 225, 0.25);
+  border-radius: 12px;
+  padding: 14px 12px 14px;
   text-align: center;
+  transition: border-color 0.3s, transform 0.3s;
+}
+.nutrition_card:hover {
+  border-color: rgba(30, 180, 225, 0.7);
+  transform: translateY(-2px);
+}
+.nutrition_label {
+  font-size: 12px;
+  color: rgb(110, 110, 110);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  line-height: 1;
+  margin-bottom: 8px;
 }
 .nutrition_val {
   font-size: 18px;
   font-weight: 600;
   color: rgb(8, 146, 192);
-}
-.nutrition_label {
-  font-size: 13px;
-  color: rgb(45, 45, 45);
-  font-weight: 500;
-  margin-top: 2px;
+  font-variant-numeric: tabular-nums;
+  /* letter-spacing: -0.01em; */
+  line-height: 1.15;
 }
 
 /* ingredients */
@@ -293,10 +347,14 @@
   padding: 0;
   margin: 0;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  grid-template-columns: repeat(2, minmax(220px, 1fr));
   gap: 12px;
 }
-
+@media (max-width: 640px) {
+  .ingredients_list {
+    grid-template-columns: 1fr;
+  }
+}
 .ingredient_tile {
   display: flex;
   align-items: center;
@@ -322,7 +380,7 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 12px;
+  font-size: 13px;
   color: rgb(80, 80, 80);
   font-weight: 500;
 }
@@ -337,16 +395,16 @@
   background: rgba(45, 106, 79, 0.5);
 }
 .legend_item--protein::before {
-  background: rgb(139, 58, 58, 0.65);
+  background: rgba(190, 40, 40, 0.7);
 }
 .legend_item--dairy::before {
   background: rgb(201, 162, 39, 0.5);
 }
 .legend_item--fruits::before {
-  background: rgb(212, 98, 42, 0.6);
+  background: rgba(250, 134, 76, 0.6);
 }
 .legend_item--grains::before {
-  background: rgb(166, 124, 82, 0.5);
+  background: rgb(145, 108, 72, 0.6);
 }
 .legend_item--other::before {
   background: rgb(156, 163, 175, 0.5);
@@ -359,10 +417,10 @@
   border-color: rgba(45, 106, 79, 0.35);
 }
 .ingredient_tile--protein {
-  background: rgba(139, 58, 58, 0.13);
+  background: rgba(190, 40, 40, 0.13);
 }
 .ingredient_tile--protein:hover {
-  border-color: rgba(139, 58, 58, 0.35);
+  border-color: rgba(190, 40, 40, 0.35);
 }
 .ingredient_tile--dairy {
   background: rgba(201, 162, 39, 0.10);
@@ -371,16 +429,16 @@
   border-color: rgba(201, 162, 39, 0.35);
 }
 .ingredient_tile--fruits {
-  background: rgba(212, 98, 42, 0.13);
+  background: rgba(250, 134, 76, 0.11);
 }
 .ingredient_tile--fruits:hover {
-  border-color: rgba(212, 98, 42, 0.35);
+  border-color: rgba(250, 134, 76, 0.35);
 }
 .ingredient_tile--grains {
-  background: rgba(166, 124, 82, 0.18);
+  background: rgba(145, 108, 72, 0.19);
 }
 .ingredient_tile--grains:hover {
-  border-color: rgba(166, 124, 82, 0.35);
+  border-color: rgba(145, 108, 722, 0.35);
 }
 .ingredient_tile--other {
   background: rgba(156, 163, 175, 0.10);
@@ -390,27 +448,27 @@
 }
 .ingredient_qty--vegetables {
   background: rgba(45, 106, 79, 0.15);
-  color: #2D6A4F;
+  color: rgb(45, 106, 79);
 }
 .ingredient_qty--protein {
-  background: rgba(139, 58, 58, 0.15);
-  color: #8B3A3A;
+  background: rgba(190, 40, 40, 0.14);
+  color: rgb(190, 40, 40);
 }
 .ingredient_qty--dairy {
   background: rgba(201, 162, 39, 0.18);
-  color: #9A7B15;
+  color: rgb(201, 162, 39);
 }
 .ingredient_qty--fruits {
   background: rgba(212, 98, 42, 0.15);
-  color: #D4622A;
+  color: rgb(250, 134, 76);
 }
 .ingredient_qty--grains {
   background: rgba(166, 124, 82, 0.18);
-  color: #8B6914;
+  color: rgb(145, 108, 724);
 }
 .ingredient_qty--other {
   background: rgba(156, 163, 175, 0.2);
-  color: #6B7280;
+  color: rgb(156, 163, 175);
 }
 
 /* ingredient quantities */
@@ -421,7 +479,7 @@
   border-radius: 8px;
   background: rgba(30, 180, 225, 0.1);
   color: rgb(8, 146, 192);
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 700;
   text-align: center;
   line-height: 1.2;
@@ -433,7 +491,7 @@
   align-items: center;
   min-width: 36px;
   font-size: 11px;
-  opacity: 0.75;
+  opacity: 0.85;
 }
 .ingredient_qty--empty::after {
   content: attr(data-tooltip);
@@ -454,17 +512,130 @@
   transition: opacity 0.15s, visibility 0.15s;
   z-index: 10;
 }
-.ingredient_qty--empty:hover::after,
-.ingredient_qty--empty:focus-visible::after {
+.ingredient_qty--empty:hover::after, .ingredient_qty--empty:focus-visible::after {
   opacity: 1;
   visibility: visible;
 }
 
 .ingredient_name {
-  font-size: 14px;
+  flex: 1;
+  min-width: 0;
+  font-size: 15px;
   line-height: 1.4;
   color: rgb(50, 50, 50);
   font-weight: 500;
+}
+
+.ingredient_tile_icons {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+/* allergen icons (top nine allergies: milk, eggs, peanuts, tree nuts, soy, wheat, fish, shellfish, sesame) */
+.allergen_icon {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  color: rgba(102, 22, 12, 0.8);
+  background: rgba(102, 22, 12, 0.10);
+  font-size: 18px;
+  cursor: default;
+}
+.allergen_icon::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 6px 6px;
+  border-radius: 8px;
+  background: rgb(50, 50, 50);
+  color: white;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: normal;
+  width: max-content;
+  max-width: 350px;
+  text-align: center;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.15s, visibility 0.15s;
+  z-index: 10;
+}
+.allergen_icon:hover::after, .allergen_icon:focus-visible::after {
+  opacity: 0.85;
+  visibility: visible;
+}
+
+/* dietary icons (non-veg, fish, vegan, veg, gluten-free) */
+.dietary_icon {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  font-size: 13px;
+  cursor: default;
+}
+.dietary_icon::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 6px 8px;
+  border-radius: 8px;
+  background: rgb(50, 50, 50);
+  color: white;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.15s, visibility 0.15s;
+  z-index: 10;
+}
+.dietary_icon:hover::after, .dietary_icon:focus-visible::after {
+  opacity: 0.85;
+  visibility: visible;
+}
+
+.dietary_icon--vegan {
+  color: rgb(22, 101, 52);
+  background: rgba(22, 101, 52, 0.12);
+}
+.dietary_icon--vegetarian {
+  color: rgb(47, 133, 90);
+  background: rgba(47, 133, 90, 0.12);
+}
+.dietary_icon--fish {
+  color: rgb(29, 78, 216);
+  background: rgba(29, 78, 216, 0.12);
+}
+.dietary_icon--non_veg {
+  color: rgb(153, 27, 27);
+  background: rgba(153, 27, 27, 0.12);
+}
+.dietary_icon--egg {
+  color: rgb(180, 120, 20);
+  background: rgba(180, 120, 20, 0.12);
+}
+.dietary_icon--gluten_free {
+  color: rgb(146, 110, 60);
+  background: rgba(146, 110, 60, 0.14);
 }
 
 /* directions */
@@ -474,7 +645,7 @@
   margin: 0;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
 }
 .direction_tile {
   display: flex;
@@ -482,12 +653,12 @@
   gap: 14px;
   padding: 12px 16px;
   background: white;
-  border: 1px solid rgba(30, 180, 225, 0.15);
+  border: 1px solid rgba(30, 180, 225, 0.25);
   border-radius: 12px;
   transition: border-color 0.4s, transform 0.4s;
 }
 .direction_tile:hover {
-  border-color: rgba(30, 180, 225, 0.5);
+  border-color: rgba(30, 180, 225, 0.7);
   transform: translateY(-2px);
 }
 .direction_step {
@@ -505,7 +676,7 @@
 }
 .direction_text {
   margin: 4px 0 0;
-  font-size: 14px;
+  font-size: 15px;
   line-height: 1.55;
   color: rgb(50, 50, 50);
 }
