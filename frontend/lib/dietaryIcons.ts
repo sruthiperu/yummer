@@ -33,7 +33,6 @@ export function displayDietaryIcons(ing: IngredientDietaryInput): DietaryIcon[] 
   } else if (isVegetarian) {
     icons.push({id: "vegetarian", label: "Vegetarian", iconClass: "fa-leaf"})
   }
-
   if (ing.is_vegetarian === false && ing.food_type === "protein") {
     if (hasSeafoodAllergen(tagSet)) {
       icons.push({id: "fish", label: "Fish / seafood", iconClass: "fa-fish"})
@@ -41,11 +40,9 @@ export function displayDietaryIcons(ing: IngredientDietaryInput): DietaryIcon[] 
       icons.push({id: "non_veg", label: "Non-vegetarian", iconClass: "fa-drumstick-bite"})
     }
   }
-
   if (hasEgg(name, tagSet)) {
     icons.push({id: "egg", label: "Contains egg", iconClass: "fa-egg"})
   }
-
   if (isGlutenFree) {
     icons.push({id: "gluten_free", label: "Gluten-free", iconClass: "fa-wheat-awn"})
   }

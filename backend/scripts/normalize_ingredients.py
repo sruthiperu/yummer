@@ -10,7 +10,10 @@ UNITS = (
     r"pinch|dash|can|cans|clove|cloves|package|packages|slice|slices|"
     r"piece|pieces|head|bunch|sprig|sprigs|stick|sticks"
 )
-MERGED = {"sweetonion": "sweet onion", "hashbrown": "hash brown", "hashbrownpotato": "hash brown potato", "greenonion": "green onion", "redonion": "red onion", "basmatirice": "basmati rice", "chickenpiec": "chicken", "chickenpiece": "chicken", "chickene": "chicken", "canned stewed tomatoes": "stewed tomatoes", "canned stewed tomato": "stewed tomatoes", "chif": "chives", "clof": "cloves"}
+MERGED = {"sweetonion": "sweet onion", "hashbrown": "hash brown", "hashbrownpotato": "hash brown potato", "greenonion": "green onion", "redonion": "red onion", 
+          "basmatirice": "basmati rice", "chickenpiec": "chicken", "chickenpiece": "chicken", "chickene": "chicken", 
+          "canned stewed tomatoes": "stewed tomatoes", "canned stewed tomato": "stewed tomatoes", "chif": "chives", "clof": "cloves", "cilantroleaf": "cilantro", 
+          "greekyogurt": "greek yogurt", "plainyogurt": "plain yogurt", "frozenyogurt": "frozen yogurt", "nonfatyogurt": "nonfat yogurt", "lowfatyogurt": "low-fat yogurt", "low-fatyogurt": "low-fat yogurt", "fat-freeyogurt": "fat-free yogurt", "vanillayogurt": "vanilla yogurt"}
 UNCHANGED_PLURALS = frozenset({"chives", "cloves"})
 
 

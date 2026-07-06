@@ -5,7 +5,7 @@ import re
 patterns = [
     # milk
     (r'\b(almond|soy|oat|coconut|pea|rice|macadamia|cashew|pistachio|flax|flaxseed|hazelnut|hemp)\s*milk\b', r'\1 milk'),      # keep type
-    (r'\b(whole|2%|skim|lactose[- ]?free|organic|reduced[- ]?fat|low[- ]?fat|fat[- ]?free|raw)\s*milk\b', 'milk'),     # discard type
+    (r'\b(whole|2%|skim|lactose[- ]?free|organic|reduced[- ]?fat|low[- ]?fat|fat[- ]?free|raw)\s*milk\b(?!\s*yogurt)', 'milk'),     # discard type
 
     # eggs
     (r'\b(duck|quail|ostrich)\s*eggs?\b', r'\1 egg'),
@@ -38,10 +38,16 @@ patterns = [
     # sour cream
     (r'\b(?:fat[- ]?free|light|reduced[- ]?fat|nonfat|non[- ]?fat)\s+sour cream\b', 'sour cream'),
 
-    # yogurt
-    (r'\b(greek|icelandic|australian|french|skyr|kefir|plant[- ]?based|soy|coconut|non[- ]?dairy|frozen)\s*yogurt\b', r'\1 yogurt'),
-    (r'\b(plain|vanilla|strawberry|blueberry|raspberry|peach|cherry|lemon)\s*yogurt\b', r'\1 yogurt'),
-    (r'\b(traditional)?\s*yogurt\b', 'yogurt'),
+    # yogurt (use \s+ before yogurt — optional \s* eats the space after modifiers)
+    (r'\b(greek|icelandic|australian|french|skyr|kefir|plant[- ]?based|soy|coconut|non[- ]?dairy|frozen)\s+yogurt\b', r'\1 yogurt'),
+    (r'\b(plain|vanilla|strawberry|blueberry|raspberry|peach|cherry|lemon)\s+yogurt\b', r'\1 yogurt'),
+    (r'\b(?:low[- ]?fat|nonfat|non[- ]?fat|fat[- ]?free|reduced[- ]?fat|light|whole[- ]?milk|full[- ]?fat)\s+(?:(?:greek|plain|vanilla|strawberry|frozen)\s+)?yogurt\b', 'yogurt'),
+    (r'\bwhole\s+milk\s+yogurt\b', 'yogurt'),
+    (r'\b(?:low[- ]?fat|nonfat|non[- ]?fat|fat[- ]?free|reduced[- ]?fat|light)\s+yogurt\b', 'yogurt'),
+    (r'\btraditional\s+yogurt\b', 'yogurt'),
+    (r'^yogurt$', 'yogurt'),
+    (r'\b(greek|plain|vanilla|frozen|nonfat|icelandic|australian|french|strawberry|blueberry|raspberry|peach|cherry|lemon)yogurt\b', r'\1 yogurt'),
+    (r'\b(low[- ]?fat|fat[- ]?free|reduced[- ]?fat|light|non[- ]?fat)yogurt\b', r'\1 yogurt'),
 
     # vegetables
     (r'\bcanned\s+', ''),
@@ -61,6 +67,8 @@ patterns = [
     (r'\b(?:frozen\s+)?(broccoli|cauliflower)\s+florets?\b', r'\1 floret'),
     (r'\b(broccoli|cauliflower|asparagus|zucchini|cucumber|celery|carrot)\b', r'\1'),
     (r'\b(?:baby\s*)?arugulas?\b', 'arugula'),
+    (r'\b(?:shredded|sliced|chopped|finely|thinly|grated)?\s*(?:green|red|napa|savoy|purple|white|chinese)\s+cabbages?\b', 'cabbage'),
+    (r'\bcabbages?\b', 'cabbage'),
     (r'\b(leek)s?\b', 'leek'),
     (r'\b(?:(?:chopped|pitted|sliced|drained|stuffed|garlic[- ]?stuffed)\s+)*(?:(?:green|black|kalamata|spanish|ripe|pimento)\s+)*olives?\b(?:\s*\([^)]*\))?(?:\s+in\s+brine)?(?:\s+with\s+pimento)?(?! oil\b)', 'olive'),
 
@@ -78,6 +86,8 @@ patterns = [
     (r'\b(?:mexican|italian|greek|dried|fresh|chopped|minced)\s+(oregano|basil|parsley|cilantro|thyme|rosemary|dill|mint|sage)\b', r'\1'),
 
     # fruits
+    (r'\b(lemon|lime)\s+wedges?\b', r'\1'),
+    (r'\b(lemon|lime)\s+slices?\b', r'\1'),
     (r'\b(lemon|lime|orange|grapefruit|clementine|tangerine)\s*,?\s*(?:juice|zest)\s+of\b', r'\1'),
     (r'\b(lemon|lime|orange|grapefruit)\s+juice\b', r'\1'),
     (r'\b(lemon|lime|orange|grapefruit|clementine|tangerine)\b', r'\1'),
@@ -98,7 +108,9 @@ patterns = [
     (r'\b(fresh|frozen|organic|grass-fed)?\s*(ground|leg|leg[- ]?of|chop)?\s*lamb\b', 'lamb'),
 
     # seafood
-    (r'\b(salmon|tuna|halibut|cod|tilapia|trout|mackerel|sardine|anchovy)\s*(fillet|steak)?\b', r'\1'),
+    (r'\b(?:fresh|frozen|raw|cooked|grilled|baked|smoked|white|firm|mild)?\s*fish\s+(?:fillet|steak|filet)s?\b', 'fish'),
+    (r'\b(?:white|oily|saltwater|freshwater)\s+fish\b', 'fish'),
+    (r'\b(salmon|tuna|halibut|cod|tilapia|trout|mackerel|sardine|anchovy)\s*(?:fillet|steak|filet)?\b', r'\1'),
     (r'\b(shrimp|prawn)s?\b', 'shrimp'),
     (r'\b(crab|lobster|scallop|mussel|clam|oyster)s?\b', r'\1'),    # make singular
 
@@ -148,9 +160,13 @@ patterns = [
     (r'\bketchup\b', 'ketchup'),
     (r'\bcornstarch\b', 'cornstarch'),
     (r'\b(?:prepared\s+)?horseradish\b', 'horseradish'),
+    (r'\b(?:fresh|homemade|prepared|store[- ]?bought)?\s*guacamole\b', 'guacamole'),
+    (r'\b(?:fresh|homemade|prepared)?\s*pico de gallo\b', 'pico de gallo'),
     (r'\b(?:table|sea|himalayan|pink|kosher)\s*salt\b', 'salt'),
+    (r'\b(garlic|onion|ginger|chili|celery|mustard|paprika|onion)\s+powder\b', r'\1 powder'),
     (r'\b(red|green|black|white)\s*pepper\b', r'\1 pepper'),
-    (r'\b(oregano|thyme|rosemary|basil|parsley|cilantro|dill|mint|sage)\s*(leaves?)?\b', r'\1'),
+    (r'\b(oregano|thyme|rosemary|basil|parsley|cilantro|dill|mint|sage)\s*(?:leaves?|leaf)\b', r'\1'),
+    (r'\bcilantroleaf\b', 'cilantro'),
     (r'\bbay\s+leaves?\b', 'bay leaf'),
     (r'\b(dried|fresh|ground|whole)\s+(\w+)\b', r'\2'),
 ]
@@ -221,6 +237,9 @@ food_types = {
     "chives": {"type": "vegetable", "vegan": True, "vegetarian": True, "gluten_free": True},
     "cilantro": {"type": "vegetable", "vegan": True, "vegetarian": True, "gluten_free": True},
     "coriander": {"type": "vegetable", "vegan": True, "vegetarian": True, "gluten_free": True},
+    "cabbage": {"type": "vegetable", "vegan": True, "vegetarian": True, "gluten_free": True},
+    "guacamole": {"type": "vegetable", "vegan": True, "vegetarian": True, "gluten_free": True},
+    "pico de gallo": {"type": "vegetable", "vegan": True, "vegetarian": True, "gluten_free": True},
     "dill": {"type": "vegetable", "vegan": True, "vegetarian": True, "gluten_free": True},
     "mint": {"type": "vegetable", "vegan": True, "vegetarian": True, "gluten_free": True},
     "sage": {"type": "vegetable", "vegan": True, "vegetarian": True, "gluten_free": True},
@@ -257,6 +276,13 @@ food_types = {
     "crab": {"type": "protein", "vegan": False, "vegetarian": False, "gluten_free": True},
     "lobster": {"type": "protein", "vegan": False, "vegetarian": False, "gluten_free": True},
     "fish": {"type": "protein", "vegan": False, "vegetarian": False, "gluten_free": True},
+    "cod": {"type": "protein", "vegan": False, "vegetarian": False, "gluten_free": True},
+    "halibut": {"type": "protein", "vegan": False, "vegetarian": False, "gluten_free": True},
+    "tilapia": {"type": "protein", "vegan": False, "vegetarian": False, "gluten_free": True},
+    "trout": {"type": "protein", "vegan": False, "vegetarian": False, "gluten_free": True},
+    "mackerel": {"type": "protein", "vegan": False, "vegetarian": False, "gluten_free": True},
+    "sardine": {"type": "protein", "vegan": False, "vegetarian": False, "gluten_free": True},
+    "anchovy": {"type": "protein", "vegan": False, "vegetarian": False, "gluten_free": True},
     "egg": {"type": "protein", "vegan": False, "vegetarian": True, "gluten_free": True},
     "duck egg": {"type": "protein", "vegan": False, "vegetarian": True, "gluten_free": True},
     "quail egg": {"type": "protein", "vegan": False, "vegetarian": True, "gluten_free": True},
@@ -293,6 +319,11 @@ food_types = {
     "cream cheese": {"type": "dairy", "vegan": False, "vegetarian": True, "gluten_free": True},
     "yogurt": {"type": "dairy", "vegan": False, "vegetarian": True, "gluten_free": True},
     "greek yogurt": {"type": "dairy", "vegan": False, "vegetarian": True, "gluten_free": True},
+    "plain yogurt": {"type": "dairy", "vegan": False, "vegetarian": True, "gluten_free": True},
+    "frozen yogurt": {"type": "dairy", "vegan": False, "vegetarian": True, "gluten_free": True},
+    "soy yogurt": {"type": "dairy", "vegan": True, "vegetarian": True, "gluten_free": True},
+    "coconut yogurt": {"type": "dairy", "vegan": True, "vegetarian": True, "gluten_free": True},
+    "plant-based yogurt": {"type": "dairy", "vegan": True, "vegetarian": True, "gluten_free": True},
     "sour cream": {"type": "dairy", "vegan": False, "vegetarian": True, "gluten_free": True},
     "fat free sour cream": {"type": "dairy", "vegan": False, "vegetarian": True, "gluten_free": True},
     "cream": {"type": "dairy", "vegan": False, "vegetarian": True, "gluten_free": True},
@@ -368,6 +399,8 @@ food_types = {
     "cloves": {"type": "seasoning", "vegan": True, "vegetarian": True, "gluten_free": True},
     "allspice": {"type": "seasoning", "vegan": True, "vegetarian": True, "gluten_free": True},
     "chili powder": {"type": "seasoning", "vegan": True, "vegetarian": True, "gluten_free": True},
+    "garlic powder": {"type": "seasoning", "vegan": True, "vegetarian": True, "gluten_free": True},
+    "onion powder": {"type": "seasoning", "vegan": True, "vegetarian": True, "gluten_free": True},
     "mustard": {"type": "seasoning", "vegan": True, "vegetarian": True, "gluten_free": True},
     "dijon mustard": {"type": "seasoning", "vegan": True, "vegetarian": True, "gluten_free": True},
     "red pepper flakes": {"type": "seasoning", "vegan": True, "vegetarian": True, "gluten_free": True},
@@ -398,7 +431,7 @@ allergens = {
     "milk": ["dairy"], "butter": ["dairy"], "unsalted butter": ["dairy"], "salted butter": ["dairy"], 
     "cheese": ["dairy"], "cheddar cheese": ["dairy"], "mozzarella cheese": ["dairy"], "parmesan cheese": ["dairy"], "swiss cheese": ["dairy"], 
     "feta cheese": ["dairy"], "goat cheese": ["dairy"], "blue cheese": ["dairy"], "ricotta cheese": ["dairy"], "cottage cheese": ["dairy"], "cream cheese": ["dairy"], 
-    "yogurt": ["dairy"], "greek yogurt": ["dairy"],
+    "yogurt": ["dairy"], "greek yogurt": ["dairy"], "plain yogurt": ["dairy"], "frozen yogurt": ["dairy"],
     "sour cream": ["dairy"], "cream": ["dairy"],
     "half and half": ["dairy"],
     
