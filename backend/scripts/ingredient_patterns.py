@@ -426,6 +426,21 @@ food_types = {
 }
 
 
+substitute_markers = re.compile(r"\b(substitute|substitutes|imitation|mock|meatless|meat[- ]?free|plant[- ]?based|vegan|vegetarian|egg[- ]?free|eggless|dairy[- ]?free|faux|fake)\b", re.IGNORECASE)
+vegan_markers = re.compile(r"\b(vegan|plant[- ]?based|dairy[- ]?free|egg[- ]?free|eggless)\b", re.IGNORECASE)
+animal_allergens = frozenset({"dairy", "eggs", "fish", "shellfish"})
+non_veg_markers = re.compile(r"\b(chicken|turkey|duck|goose|quail|cornish hen|beef|steak|veal|lamb|mutton|goat|venison|bison|pork|ham|bacon|sausage|prosciuttopancetta|salami|pepperoni|chorizo|fish|salmon|tuna|cod|halibut|"
+                             r"trout|sardine|anchovy|herring|mackerel|shrimp|prawn|crab|lobster|scallop|clam|mussel|oyster|squid|calamari|octopus|gelatin|lard|tallow|suet|bone marrow|anchovies|anchovy paste)\b", re.IGNORECASE)
+embedded_non_veg_markers = re.compile(r"(chicken|turkey|pork|beef|lamb|bacon|ham|sausage|shrimp|salmon|tuna|anchovy|gelatin)", re.IGNORECASE)
+dairy_egg_markers = re.compile(r"\b(milk|cream|cheese|butter|yogurt|yoghurt|kefir|egg|eggs|egg white|egg yolk|mayonnaise|mayo|whey|casein|ghee|buttermilk|sour cream|creme fraiche|"
+                               r"ricotta|mozzarella|parmesan|cheddar|feta|brie|honey|custard|ice cream|whipped cream|condensed milk|evaporated milk|half and half|half-and-half)\b", re.IGNORECASE)
+gluten_markers = re.compile(r"\b(wheat|flour|bread|breadcrumb|breadcrumbs|pasta|noodle|noodles|barley|rye|seitan|couscous|bulgur|farro|spelt|cracker|crackers|tortilla(?! chips)|pita|bagel|croissant|"
+                            r"pretzel|muffin|biscuit|crouton|croutons|soy sauce|teriyaki|malt|beer|all[- ]?purpose flour|self[- ]?rising flour|whole wheat)\b", re.IGNORECASE)
+plant_markers = re.compile(r"\b(sugar|salt|pepper|spice|herb|oil|vinegar|cocoa|chocolate|vanilla|cinnamon|nutmeg|ginger|garlic|onion|tomato|potato|carrot|celery|lettuce|spinach|broccoli|"
+                           r"bean|beans|lentil|lentils|chickpea|rice|corn|pea|peas|apple|banana|orange|lemon|lime|berry|berries|fruit|avocado|mushroom|zucchini|squash|pepper|jalapeno|"
+                           r"almond|walnut|pecan|cashew|peanut|pistachio|hazelnut|olive|canola|vegetable oil|sesame oil|coconut oil|maple syrup|agave|molasses|honey substitute|"
+                           r"tofu|tempeh|seitan substitute|nutritional yeast|water|broth|stock|juice|wine(?! vinegar))\b", re.IGNORECASE)
+
 allergens = {
     # dairy
     "milk": ["dairy"], "butter": ["dairy"], "unsalted butter": ["dairy"], "salted butter": ["dairy"], 

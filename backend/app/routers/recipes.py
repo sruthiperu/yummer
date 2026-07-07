@@ -28,7 +28,8 @@ def get_recipe(recipe_id: int, db: Session = Depends(get_db)):
         display_name = get_display_name(recipe_ing.raw_ingredient) or (ing.name.strip() if ing.name else None)
         recipe.ingredients.append({"id": ing.id, "name": display_name, "quantity": format_quantity(recipe_ing.quantity), 
                                    "unit": abbreviate_unit(recipe_ing.unit), "container_size": recipe_ing.container_size,
-                                   "raw_ingredient": recipe_ing.raw_ingredient, "food_type": ing.food_type, "allergens": ing.allergens or [], 
+                                   "raw_ingredient": recipe_ing.raw_ingredient, "section_title": recipe_ing.section_title,
+                                   "food_type": ing.food_type, "allergens": ing.allergens or [], 
                                    "is_vegan": ing.is_vegan, "is_vegetarian": ing.is_vegetarian, "is_gluten_free": ing.is_gluten_free})
     
 

@@ -1,5 +1,5 @@
 export type DietaryIcon = {
-  id: "vegan" | "vegetarian" | "fish" | "non_veg" | "egg" | "gluten_free"
+  id: "vegan" | "vegetarian" | "fish" | "non_veg" | "gluten_free"
   label: string
   iconClass: string
 }
@@ -16,14 +16,10 @@ type IngredientDietaryInput = {
 function hasSeafoodAllergen(tagSet: Set<string>): boolean {
   return tagSet.has("fish") || tagSet.has("shellfish")
 }
-function hasEgg(name: string, tagSet: Set<string>): boolean {
-  return tagSet.has("eggs") || /\begg\b/.test(name)
-}
 
 export function displayDietaryIcons(ing: IngredientDietaryInput): DietaryIcon[] {
   const icons: DietaryIcon[] = []
   const tagSet = new Set((ing.allergens ?? []).map((t) => t.toLowerCase()))
-  const name = (ing.name ?? "").toLowerCase()
   const isVegan = ing.is_vegan === true
   const isVegetarian = ing.is_vegetarian === true
   const isGlutenFree = ing.is_gluten_free === true
@@ -40,12 +36,16 @@ export function displayDietaryIcons(ing: IngredientDietaryInput): DietaryIcon[] 
       icons.push({id: "non_veg", label: "Non-vegetarian", iconClass: "fa-drumstick-bite"})
     }
   }
-  if (hasEgg(name, tagSet)) {
-    icons.push({id: "egg", label: "Contains egg", iconClass: "fa-egg"})
-  }
   if (isGlutenFree) {
     icons.push({id: "gluten_free", label: "Gluten-free", iconClass: "fa-wheat-awn"})
   }
 
   return icons
 }
+
+export const DIETARY_LEGEND: DietaryIcon[] = [
+  { id: "non_veg", label: "Non-vegetarian", iconClass: "fa-drumstick-bite" },
+  { id: "vegetarian", label: "Vegetarian", iconClass: "fa-leaf" },
+  { id: "vegan", label: "Vegan", iconClass: "fa-seedling" },
+  { id: "gluten_free", label: "Gluten-free", iconClass: "fa-wheat-awn" },
+]

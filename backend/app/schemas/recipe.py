@@ -10,6 +10,7 @@ class IngredientResponse(BaseModel):
     unit: str | None
     container_size: str | None = None
     raw_ingredient: str | None
+    section_title: str | None = None
     food_type: str | None = None
     allergens: list[str] | None = None
     is_vegan: bool | None = None

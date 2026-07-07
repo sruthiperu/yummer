@@ -37,7 +37,7 @@ class Ingredient(Base):
 
     name = Column(String, nullable=False)       # required
     aliases = Column(ARRAY(String), nullable=True)
-    food_type = Column(String, nullable=True)           # dairy, meet, etc.
+    food_type = Column(String, nullable=True)           # dairy, meat, etc
     allergens = Column(ARRAY(String), nullable=True)    # common allergens
     is_vegan = Column(Boolean, nullable=True)
     is_vegetarian = Column(Boolean, nullable=True)
@@ -55,8 +55,9 @@ class RecipeIngredient(Base):
     ingredient_id = Column(Integer, ForeignKey("ingredients.id"), nullable=False)
     quantity = Column(String, nullable=True)            # parsed
     unit = Column(String, nullable=True) 
-    container_size = Column(String, nullable=True)      # e.g. "14 oz" for "1 (14 ounce) can ..."
-    raw_ingredient = Column(String, nullable=True)     # original text from Recipe_NLG
+    container_size = Column(String, nullable=True)      # ex. "14 oz" for "1 (14 ounce) can ..."
+    raw_ingredient = Column(String, nullable=True)     # original text from recipenlg
+    section_title = Column(String, nullable=True)      # null -> unnamed/default section
 
 
 # user table

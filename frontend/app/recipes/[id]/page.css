@@ -355,6 +355,55 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* ingredient sections (multi-section recipes) */
+.ingredients_sections_grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(220px, 1fr));
+  gap: 16px;
+  align-items: start;
+}
+.ingredients_sections_column {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.ingredients_sections_stack {
+  display: none;
+  flex-direction: column;
+  gap: 16px;
+}
+.ingredient_section {
+  background: white;
+  border: 1px solid rgba(30, 180, 225, 0.2);
+  border-radius: 14px;
+  padding: 16px;
+}
+.ingredient_section_title {
+  margin: 0 0 12px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgb(90, 90, 90);
+}
+.ingredient_section_list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+@media (max-width: 640px) {
+  .ingredients_sections_grid {
+    display: none;
+  }
+  .ingredients_sections_stack {
+    display: flex;
+  }
+}
+
 .ingredient_tile {
   display: flex;
   align-items: center;
@@ -369,12 +418,73 @@
   transform: translateY(-2px);
 }
 
+/* legend: panel with legends (food types, dietary) placed above one another */
+.legend_content {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 10px 32px;
+  margin-bottom: 16px;
+  padding: 12px 16px;
+  background: rgba(30, 180, 225, 0.05);
+  border-radius: 12px;
+}
+.legend_row {
+  display: contents;
+}
+.legend_row_label {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: rgb(120, 120, 120);
+  white-space: nowrap;
+}
+@media (max-width: 640px) {
+  .legend_content {
+    grid-template-columns: 1fr;
+    gap: 4px 0;
+  }
+  .legend_row_label {
+    margin-top: 6px;
+  }
+}
 /* legend (ingredient food types) */
 .ingredient_legend {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 8px 14px;
-  margin-bottom: 14px;
+}
+/* legend (allergen and dietary icons) */
+.ingredient_icon_legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+}
+.icon_legend_item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: rgb(80, 80, 80);
+  font-weight: 500;
+}
+.icon_legend_icon {
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  font-size: 11px;
+  cursor: default;
+  pointer-events: none;
+}
+.icon_legend_icon.allergen_icon .material-symbols-outlined {
+  font-size: 22px;
+}
+.icon_legend_icon::after {
+  content: none;
+  display: none;
 }
 .legend_item {
   display: inline-flex;
@@ -395,7 +505,7 @@
   background: rgba(45, 106, 79, 0.5);
 }
 .legend_item--protein::before {
-  background: rgba(190, 40, 40, 0.7);
+  background: rgba(194, 127, 187, 0.7);
 }
 .legend_item--dairy::before {
   background: rgb(201, 162, 39, 0.5);
@@ -417,10 +527,10 @@
   border-color: rgba(45, 106, 79, 0.35);
 }
 .ingredient_tile--protein {
-  background: rgba(190, 40, 40, 0.13);
+  background: rgba(194, 127, 187, 0.18);
 }
 .ingredient_tile--protein:hover {
-  border-color: rgba(190, 40, 40, 0.35);
+  border-color: rgba(194, 127, 187, 0.35);
 }
 .ingredient_tile--dairy {
   background: rgba(201, 162, 39, 0.10);
@@ -474,7 +584,11 @@
 /* ingredient quantities */
 .ingredient_qty {
   flex-shrink: 0;
-  min-width: 16px;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  box-sizing: border-box;
+  min-width: 64px;
   padding: 6px 10px;
   border-radius: 8px;
   background: rgba(30, 180, 225, 0.1);
@@ -485,11 +599,7 @@
   line-height: 1.2;
 }
 .ingredient_qty--empty {
-  display: inline-flex;
   position: relative;
-  justify-content: center;
-  align-items: center;
-  min-width: 36px;
   font-size: 11px;
   opacity: 0.85;
 }
@@ -629,16 +739,39 @@
   color: rgb(153, 27, 27);
   background: rgba(153, 27, 27, 0.12);
 }
-.dietary_icon--egg {
-  color: rgb(180, 120, 20);
-  background: rgba(180, 120, 20, 0.12);
-}
 .dietary_icon--gluten_free {
   color: rgb(146, 110, 60);
   background: rgba(146, 110, 60, 0.14);
 }
 
 /* directions */
+.directions_sections_stack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.direction_section {
+  background: white;
+  border: 1px solid rgba(30, 180, 225, 0.2);
+  border-radius: 14px;
+  padding: 16px;
+}
+.direction_section_title {
+  margin: 0 0 12px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgb(90, 90, 90);
+}
+.direction_section_list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
 .directions_list {
   list-style: none;
   padding: 0;

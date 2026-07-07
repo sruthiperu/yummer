@@ -7,7 +7,7 @@ import pandas as pd
 import re
 from datetime import datetime
 from ingredient_parser import parse_ingredient
-from scripts.ingredient_match import resolve_canonical_name
+from scripts.ingredient_match import resolve_canonical_name, parse_section_header, format_section_title
 from scripts.format_quantities import format_quantity, abbreviate_unit
 
 
@@ -205,6 +205,53 @@ def parse_servings_from_link(link, servings_by_id):
     return servings_by_id.get(match.group(1))
 
 
+def parse_direction_section_header(text):
+    """
+    return section title if text is a direction section header line, or else None
+    """
+    
+    if not text or not str(text).strip():
+        return None
+
+    raw = str(text).strip()
+    if not raw.endswith(":"):
+        return None
+    if len(raw) > 80:
+        return None
+    if raw[0].islower():
+        return None
+
+    words = raw.rstrip(":").strip().split()
+    if len(words) > 12:
+        return None
+
+    return format_section_title(raw.rstrip(":").strip())
+
+
+def parse_directions(instructions):
+    """
+    parse recipenlg direction lines into step dicts with optional section_title
+    """
+
+    directions = []
+    current_section = None
+    step_num = 0
+    for step in instructions:
+        if not step or not str(step).strip():
+            continue
+
+        header = parse_direction_section_header(step)
+        if header:
+            current_section = header
+            step_num = 0
+            continue
+
+        step_num += 1
+        directions.append({"step_num": step_num, "direction": str(step).strip(), "section_title": current_section})
+
+    return directions
+
+
 def parse_row(row, servings_by_id=None):
     """
     parse recipe (1 row in csv file)
@@ -216,9 +263,7 @@ def parse_row(row, servings_by_id=None):
 
     # parse directions into list of dicts
     instructions = convert_str_to_list(row['directions'])
-    directions = []
-    for i, step in enumerate(instructions):
-        directions.append({'step_num': i + 1, 'direction': step.strip()})
+    directions = parse_directions(instructions)
 
     total_time = parse_time(row['minutes'])
     nutrition = parse_nutrition(row['nutrition'])
@@ -229,9 +274,15 @@ def parse_row(row, servings_by_id=None):
     recipe_data = {'name': row['name'], 'directions': directions, 'total_time': total_time, 'nutrition': nutrition, 'tags': tags, 'date': date, 'link': link, 'servings': servings}
     ingredients_data = []
     used_fc_indices = set()
+    current_section = None
 
     for nlg_text in recipenlg_ingredients:
         if not nlg_text:
+            continue
+
+        header = parse_section_header(nlg_text)
+        if header:
+            current_section = header
             continue
 
         ing_name = resolve_canonical_name(
@@ -248,6 +299,7 @@ def parse_row(row, servings_by_id=None):
             'unit': unit,
             'container_size': container_size,
             'ingredient': ing_name,
+            'section_title': current_section,
         })
 
     return recipe_data, ingredients_data

@@ -3,6 +3,7 @@
 import {useRouter} from "next/navigation"
 
 import "./recipe_card.css"
+import {formatRecipeTags} from "@/lib/recipeTags"
 
 
 type RecipeCardProps = {
@@ -33,10 +34,7 @@ RecipeCardProps) {
 
     const router = useRouter()
 
-    const TAGS = new Set(["vegetarian", "vegan", "gluten-free", "keto", "dairy-free", "low-calorie", "high-protein",
-                          "30-minutes-or-less", "15-minutes-or-less", "60-minutes-or-less",
-                          "main-dish", "side-dishes"])
-    const display_tags = tags?.filter(t => TAGS.has(t)).slice(0, 3) ?? []
+    const display_tags = formatRecipeTags(tags, 3)
 
     const total_user_ings = user_ings?.length || 0
     const matched = Math.round(((user_match_pct ?? 0) / 100) * total_user_ings)
@@ -77,8 +75,8 @@ RecipeCardProps) {
 
             {display_tags.length > 0 && (
                 <div className="tags_box">
-                    {display_tags.map(tag => (
-                        <span key={tag} className="tag">{tag}</span>
+                    {display_tags.map(({ id, label }) => (
+                        <span key={id} className="tag">{label}</span>
                     ))}
                 </div>
             )}

@@ -3,6 +3,7 @@
 export type Instruction = {
     step_num: number
     direction: string
+    section_title?: string | null
 }
 
 export type Nutrition = {
@@ -36,6 +37,7 @@ export type Ingredient = {
     unit: string | null
     container_size?: string | null
     raw_ingredient: string | null
+    section_title?: string | null
     food_type?: string | null
     allergens?: string[] | null
     is_vegan?: boolean | null

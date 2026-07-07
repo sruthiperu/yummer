@@ -1,15 +1,10 @@
 import re
 from app.models.recipe import Ingredient
 from sqlalchemy import select
-from .ingredient_patterns import patterns, food_types, allergens
+from .ingredient_patterns import patterns, food_types, allergens, substitute_markers, vegan_markers, animal_allergens, non_veg_markers, dairy_egg_markers, gluten_markers, plant_markers, embedded_non_veg_markers
 
 
-UNITS = (
-    r"cup|cups|tbsp|tsp|tablespoon|tablespoons|teaspoon|teaspoons|"
-    r"ounce|ounces|oz|lb|lbs|pound|pounds|g|gram|grams|kg|ml|l|"
-    r"pinch|dash|can|cans|clove|cloves|package|packages|slice|slices|"
-    r"piece|pieces|head|bunch|sprig|sprigs|stick|sticks"
-)
+UNITS = (r"cup|cups|tbsp|tsp|tablespoon|tablespoons|teaspoon|teaspoons|ounce|ounces|oz|lb|lbs|pound|pounds|g|gram|grams|kg|ml|l|pinch|dash|can|cans|clove|cloves|package|packages|slice|slices|piece|pieces|head|bunch|sprig|sprigs|stick|sticks")
 MERGED = {"sweetonion": "sweet onion", "hashbrown": "hash brown", "hashbrownpotato": "hash brown potato", "greenonion": "green onion", "redonion": "red onion", 
           "basmatirice": "basmati rice", "chickenpiec": "chicken", "chickenpiece": "chicken", "chickene": "chicken", 
           "canned stewed tomatoes": "stewed tomatoes", "canned stewed tomato": "stewed tomatoes", "chif": "chives", "clof": "cloves", "cilantroleaf": "cilantro", 
@@ -54,6 +49,42 @@ def _flags_from_key(name, key):
     return ing_info
 
 
+def infer_dietary_flags(name: str, flags: dict) -> dict:
+    """
+    fill NULL dietary flags from keyword patterns; non-veg overweights plant
+    """
+    
+    if not name:
+        return flags
+
+    if non_veg_markers.search(name) or embedded_non_veg_markers.search(name):
+        flags["vegetarian"] = False
+        flags["vegan"] = False
+        if flags.get("gluten_free") is None:
+            flags["gluten_free"] = True
+        return flags
+
+    if dairy_egg_markers.search(name):
+        if flags.get("vegan") is None:
+            flags["vegan"] = False
+        if flags.get("vegetarian") is None:
+            flags["vegetarian"] = True
+
+    if gluten_markers.search(name):
+        if flags.get("gluten_free") is None:
+            flags["gluten_free"] = False
+
+    if plant_markers.search(name):
+        if flags.get("vegetarian") is None:
+            flags["vegetarian"] = True
+        if flags.get("vegan") is None:
+            flags["vegan"] = True
+        if flags.get("gluten_free") is None:
+            flags["gluten_free"] = True
+
+    return flags
+
+
 def get_flags(name):
     """
     given: string (ingredient's canonical form); returns food type and diet flags
@@ -63,6 +94,7 @@ def get_flags(name):
     if not name:
         return default_vals.copy()
 
+    original_name = name
     name = normalize_ingredient(name)
     flags = default_vals.copy()
 
@@ -79,6 +111,17 @@ def get_flags(name):
         flags["allergens"] = list(dict.fromkeys(resolved + (flags.get("allergens") or [])))
     else:
         flags["allergens"] = flags.get("allergens") or []
+
+    flags = infer_dietary_flags(name, flags)
+
+    if substitute_markers.search(original_name):
+        flags["allergens"] = [
+            allergen for allergen in (flags.get("allergens") or [])
+            if allergen not in animal_allergens
+        ]
+        flags["vegetarian"] = True
+        if vegan_markers.search(original_name) or flags.get("vegan") is True:
+            flags["vegan"] = True
 
     return flags
 

@@ -6,8 +6,17 @@ import {useParams} from "next/navigation"
 import {useRecipe} from "@/lib/useRecipe"
 import {useState} from "react"
 import {ingredientTypeClass, INGREDIENT_LEGEND} from "@/lib/ingredientColors"
-import {displayAllergens, allergenContainsText} from "@/lib/allergenIcons"
-import {displayDietaryIcons} from "@/lib/dietaryIcons"
+import {displayAllergens, allergenContainsText, ALLERGEN_LEGEND} from "@/lib/allergenIcons"
+import {displayDietaryIcons, DIETARY_LEGEND} from "@/lib/dietaryIcons"
+import {formatRecipeTags} from "@/lib/recipeTags"
+import {groupIngredientsBySection, sectionKey, distributeSectionsToColumns} from "@/lib/ingredientSections"
+import {
+    groupDirectionsBySection,
+    directionSectionKey,
+} from "@/lib/directionSections"
+import type {Ingredient, Instruction} from "@/types/recipe"
+import type {IngredientSection} from "@/lib/ingredientSections"
+import type {DirectionSection} from "@/lib/directionSections"
 
 function formatNutritionWhole(n: number) {
     return `${Math.ceil(n)}`
@@ -17,6 +26,84 @@ function formatNutritionGrams(n: number) {
 }
 function formatNutritionGramsDecimal(n: number) {
     return `${Number(n.toFixed(1))} g`
+}
+
+function DirectionSectionPanel({section, sectionIndex}: {section: DirectionSection, sectionIndex: number}) {
+    return (
+        <div className="direction_section">
+            {section.title && (
+                <h3 className="direction_section_title">{section.title}</h3>
+            )}
+            <ol className="direction_section_list">
+                {section.steps.map((step, stepIndex) => (
+                    <li key={`${sectionIndex}-${stepIndex}`} className="direction_tile">
+                        <span className="direction_step">{stepIndex + 1}</span>
+                        <p className="direction_text">{step.direction}</p>
+                    </li>
+                ))}
+            </ol>
+        </div>
+    )
+}
+
+function IngredientSectionPanel({section, sectionIndex}: {section: IngredientSection, sectionIndex: number}) {
+    return (
+        <div className="ingredient_section">
+            {section.title && (
+                <h3 className="ingredient_section_title">{section.title}</h3>
+            )}
+            <ul className="ingredient_section_list">
+                {section.ingredients.map((ing, ingIndex) => (
+                    <IngredientTile
+                        key={`${sectionIndex}-${ingIndex}`}
+                        ing={ing}
+                    />
+                ))}
+            </ul>
+        </div>
+    )
+}
+
+function IngredientTile({ing}: {ing: Ingredient}) {
+    const qtyParts = [ing.quantity, ing.unit].filter(Boolean)
+    const qty = ing.container_size ? `${qtyParts.join(" ")} (${ing.container_size})` : qtyParts.join(" ")
+    const name = (ing.name && ing.name.trim()) || "Unknown ingredient"
+    const typeClass = ingredientTypeClass(ing.food_type)
+    const allergens = displayAllergens(ing.allergens)
+    const allergenTooltip = allergenContainsText(allergens)
+    const dietaryIcons = displayDietaryIcons(ing)
+
+    return (
+        <li className={`ingredient_tile ingredient_tile--${typeClass}`}>
+            {qty ? (
+                <span className={`ingredient_qty ingredient_qty--${typeClass}`}>{qty}</span>
+            ) : (
+                <span
+                    className={`ingredient_qty ingredient_qty--empty ingredient_qty--${typeClass}`}
+                    aria-label="As much as you'd like!"
+                    data-tooltip="As much as you'd like!"
+                    tabIndex={0}
+                >
+                    <i className="fa-solid fa-minus" aria-hidden="true" />
+                </span>
+            )}
+            <span className="ingredient_name">{name}</span>
+            {(allergens.length > 0 || dietaryIcons.length > 0) && (
+                <div className="ingredient_tile_icons">
+                    {allergens.length > 0 && (
+                        <span className="allergen_icon" data-tooltip={allergenTooltip} aria-label={allergenTooltip} tabIndex={0}>
+                            <span className="material-symbols-outlined" aria-hidden="true">allergies</span>
+                        </span>
+                    )}
+                    {dietaryIcons.map((d) => (
+                        <span key={d.id} className={`dietary_icon dietary_icon--${d.id}`} data-tooltip={d.label} aria-label={d.label} tabIndex={0}>
+                            <i className={`fa-solid ${d.iconClass}`} aria-hidden="true" />
+                        </span>
+                    ))}
+                </div>
+            )}
+        </li>
+    )
 }
 
 export default function RecipePage() {
@@ -31,6 +118,12 @@ export default function RecipePage() {
     if (isLoading) return <div>Loading...</div>
     if (isError || !recipe) return <div>Recipe not found</div>
     const displayRecipe = modifiedRecipe || recipe
+    const recipeTags = formatRecipeTags(displayRecipe.tags)
+    const ingredientSections = groupIngredientsBySection(displayRecipe.ingredients ?? [])
+    const useSectionLayout = ingredientSections.length > 1
+    const [leftSections, rightSections] = distributeSectionsToColumns(ingredientSections)
+    const directionSections = groupDirectionsBySection(displayRecipe.directions ?? [])
+    const useDirectionSectionLayout = directionSections.length > 1
 
     async function handleModify() {
         if (!message.trim()) {      /* if no input from user */
@@ -99,9 +192,9 @@ export default function RecipePage() {
                         )}
                     </div>
 
-                    {displayRecipe.tags && displayRecipe.tags.length > 0 && (
+                    {recipeTags.length > 0 && (
                         <div className="tags_rec">
-                        {displayRecipe.tags.slice(0, 5).map((tag: string) => (<span key={tag} className="tag_rec">{tag}</span>))}
+                        {recipeTags.map(({ id, label }) => (<span key={id} className="tag_rec">{label}</span>))}
                         </div>
                     )}
                 </div>
@@ -171,60 +264,81 @@ export default function RecipePage() {
                 <h2 className="ingredients_title">
                     Ingredients <i className="fa-solid fa-carrot" />
                 </h2>
-                <div className="ingredient_legend">
-                    {INGREDIENT_LEGEND.map(({ type, label }) => (<span key={type} className={`legend_item legend_item--${type}`}>{label}</span>))}
-                </div>
-                <ul className="ingredients_list">
-                    {displayRecipe.ingredients?.map((ing: any) => {
-                    const qtyParts = [ing.quantity, ing.unit].filter(Boolean)
-                    const qty = ing.container_size
-                        ? `${qtyParts.join(" ")} (${ing.container_size})`
-                        : qtyParts.join(" ")
-                    const name = (ing.name && ing.name.trim()) || "Unknown ingredient"
-                    const typeClass = ingredientTypeClass(ing.food_type)
-                    const allergens = displayAllergens(ing.allergens)
-                    const allergenTooltip = allergenContainsText(allergens)
-                    const dietaryIcons = displayDietaryIcons(ing)
-
-                    return (
-                        <li key={ing.id} className={`ingredient_tile ingredient_tile--${typeClass}`}>
-                            {qty ? (<span className={`ingredient_qty ingredient_qty--${typeClass}`}>{qty}</span>) : (
-                                <span className={`ingredient_qty ingredient_qty--empty ingredient_qty--${typeClass}`} aria-label="Up to user's discretion" data-tooltip="Up to user's discretion" tabIndex={0}>
-                                    <i className="fa-solid fa-minus" aria-hidden="true" />
+                <div className="legend_content">
+                    <div className="legend_row">
+                        <span className="legend_row_label">Food types</span>
+                        <div className="ingredient_legend">
+                            {INGREDIENT_LEGEND.map(({ type, label }) => (<span key={type} className={`legend_item legend_item--${type}`}>{label}</span>))}
+                        </div>
+                    </div>
+                    <div className="legend_row">
+                        <span className="legend_row_label">Dietary</span>
+                        <div className="ingredient_icon_legend">
+                            <span className="icon_legend_item">
+                                <span className="allergen_icon icon_legend_icon" aria-hidden="true">
+                                    <span className="material-symbols-outlined">allergies</span>
                                 </span>
-                            )}
-                            <span className="ingredient_name">{name}</span>
-                            {(allergens.length > 0 || dietaryIcons.length > 0) && (
-                                <div className="ingredient_tile_icons">
-                                    {allergens.length > 0 && (
-                                        <span className="allergen_icon" data-tooltip={allergenTooltip} aria-label={allergenTooltip} tabIndex={0}>
-                                            <span className="material-symbols-outlined" aria-hidden="true">allergies</span>
-                                        </span>
-                                    )}
-                                    {dietaryIcons.map((d) => (
-                                        <span key={d.id} className={`dietary_icon dietary_icon--${d.id}`} data-tooltip={d.label} aria-label={d.label} tabIndex={0}>
-                                            <i className={`fa-solid ${d.iconClass}`} aria-hidden="true" />
-                                        </span>
-                                    ))}
-                                </div>
-                            )}
-                        </li>
-                    )
-                    })}
-                </ul>
+                                {ALLERGEN_LEGEND[0].label}
+                            </span>
+                            {DIETARY_LEGEND.map((d) => (
+                                <span key={d.id} className="icon_legend_item">
+                                    <span className={`dietary_icon dietary_icon--${d.id} icon_legend_icon`} aria-hidden="true">
+                                        <i className={`fa-solid ${d.iconClass}`} />
+                                    </span>
+                                    {d.label}
+                                </span>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+                {useSectionLayout ? (
+                    <>
+                        <div className="ingredients_sections_stack">
+                            {ingredientSections.map((section, sectionIndex) => (
+                                <IngredientSectionPanel key={sectionKey(section, sectionIndex)} section={section} sectionIndex={sectionIndex}/>
+                            ))}
+                        </div>
+                        <div className="ingredients_sections_grid">
+                            <div className="ingredients_sections_column">
+                                {leftSections.map((section, sectionIndex) => (
+                                    <IngredientSectionPanel key={sectionKey(section, sectionIndex)} section={section} sectionIndex={sectionIndex}/>
+                                ))}
+                            </div>
+                            <div className="ingredients_sections_column">
+                                {rightSections.map((section, sectionIndex) => (
+                                    <IngredientSectionPanel key={`right-${sectionKey(section, sectionIndex)}`} section={section} sectionIndex={sectionIndex}/>
+                                ))}
+                            </div>
+                        </div>
+                    </>
+                ) : (
+                    <ul className="ingredients_list">
+                        {displayRecipe.ingredients?.map((ing: Ingredient, index: number) => (
+                            <IngredientTile key={`ing-${index}`} ing={ing} />
+                        ))}
+                    </ul>
+                )}
             </section>
             
             {/* directions */}
             <section className="directions">
                 <h2 className="directions_title"> Directions <i className="fa-solid fa-list-check" /></h2>
-                <ol className="directions_list">
-                    {displayRecipe.directions?.map((step: any) => (
-                    <li key={step.step_num} className="direction_tile">
-                        <span className="direction_step">{step.step_num}</span>
-                        <p className="direction_text">{step.direction}</p>
-                    </li>
-                    ))}
-                </ol>
+                {useDirectionSectionLayout ? (
+                    <div className="directions_sections_stack">
+                        {directionSections.map((section, sectionIndex) => (
+                            <DirectionSectionPanel key={directionSectionKey(section, sectionIndex)} section={section} sectionIndex={sectionIndex}/>
+                        ))}
+                    </div>
+                ) : (
+                    <ol className="directions_list">
+                        {displayRecipe.directions?.map((step: Instruction, index: number) => (
+                            <li key={`${step.step_num}-${index}`} className="direction_tile">
+                                <span className="direction_step">{step.step_num}</span>
+                                <p className="direction_text">{step.direction}</p>
+                            </li>
+                        ))}
+                    </ol>
+                )}
             </section>
 
         </main>

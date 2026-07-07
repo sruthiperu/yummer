@@ -34,3 +34,5 @@ export function allergenContainsText(allergens: AllergenDisplay[]): string {
   const names = allergens.map((a) => a.label.toLowerCase())
   return `Contains ${names.join(", ")}`     /* handles multiple allergens */
 }
+
+export const ALLERGEN_LEGEND: { label: string }[] = [{label: "Allergen"}]
