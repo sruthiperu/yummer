@@ -93,6 +93,10 @@
   background: rgba(30, 180, 225, 0.08);
   transform: translateY(-2px);
 }
+.meta_chip--rating {
+  border: 1px solid rgb(220, 220, 220);
+  background: rgba(30, 180, 225, 0.08);
+}
 
 .tags_rec {
   display: flex;

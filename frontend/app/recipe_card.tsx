@@ -4,6 +4,7 @@ import {useRouter} from "next/navigation"
 
 import "./recipe_card.css"
 import {formatRecipeTags} from "@/lib/recipeTags"
+import StarRating from "@/lib/StarRating"
 
 
 type RecipeCardProps = {
@@ -12,6 +13,8 @@ type RecipeCardProps = {
     total_time?: number | null
     nutrition?: { calories: number } | null
     tags?: string[] | null
+    rating?: number | null
+    num_ratings?: number | null
     match_score?: number
     user_match_pct?: number
     missing_ings?: string[]
@@ -29,7 +32,7 @@ function getProgressColor(pct: number): string {
     return "progress_low"
 }
 
-export default function RecipeCard({id, name, total_time, nutrition, tags, match_score, user_match_pct, missing_ings = [], recipe_ings = [], user_ings = []}:
+export default function RecipeCard({id, name, total_time, nutrition, tags, rating, num_ratings, match_score, user_match_pct, missing_ings = [], recipe_ings = [], user_ings = []}:
 RecipeCardProps) {
 
     const router = useRouter()
@@ -49,6 +52,12 @@ RecipeCardProps) {
             <div className="info">
                 {total_time && <span><i className="fa-regular fa-alarm-clock"></i> {total_time} min</span>}
                 {nutrition?.calories && (<span><i className="fa-brands fa-nutritionix"></i> {Math.ceil(nutrition.calories)} cal</span>)}
+
+                {rating != null && (                                                   
+                    <span className="info_rating">
+                        <StarRating rating={rating} num_ratings={num_ratings} showCount />
+                    </span>
+                )}
             </div>
 
             {user_match_pct !== undefined && (

@@ -91,6 +91,8 @@ export default function SearchPage() {
                             total_time={recipe.total_time}
                             nutrition={recipe.nutrition}
                             tags={recipe.tags}
+                            rating={recipe.rating}
+                            num_ratings={recipe.num_ratings}
                             match_score={recipe.match_score}
                             user_match_pct={recipe.user_match_pct}
                             missing_ings={recipe.missing_ingredients}

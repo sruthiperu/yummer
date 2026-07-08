@@ -94,6 +94,8 @@ export default function IngredientSearchPage() {
                             total_time={recipe.total_time}
                             nutrition={recipe.nutrition}
                             tags={recipe.tags}
+                            rating={recipe.rating}
+                            num_ratings={recipe.num_ratings}
                             user_match_pct={recipe.user_match_pct}
                             missing_ings={recipe.missing_ingredients}
                             recipe_ings={recipe.ingredients}

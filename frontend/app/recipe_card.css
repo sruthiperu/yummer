@@ -86,3 +86,8 @@
     margin-top: 8px;
     font-size: 11px;
 }
+
+.info_rating {
+    display: inline-flex;
+    align-items: center;
+}

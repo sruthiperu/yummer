@@ -1,0 +1,29 @@
+.star_rating {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.star_rating__icon {
+    color: rgb(120, 120, 120); 
+    font-size: 14px;
+}
+
+.star_rating--md .star_rating__icon {
+    font-size: 14px;
+}
+
+.star_rating__text {
+    font-size: 13px;
+    font-weight: 600;
+    color: rgb(90, 90, 90);
+}
+
+.star_rating--md .star_rating__text {
+    font-size: 15px;
+}
+
+.star_rating__count {
+    font-size: 14px;
+    color: rgb(115, 115, 115);
+}

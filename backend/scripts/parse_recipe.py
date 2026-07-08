@@ -125,15 +125,7 @@ def get_quantity(text):
     except:
         return None, None, None, strip_units(text)
 
-NUTRITION_DV = {
-    "total_fat": 65,
-    "sugar": 25,
-    "sodium": 2400,
-    "protein": 50,
-    "saturated_fat": 20,
-    "carbs": 300,
-}
-
+NUTRITION_DV = {"total_fat": 65, "sugar": 25, "sodium": 2400, "protein": 50, "saturated_fat": 20, "carbs": 300}
 
 def pdv_to_amount(pct, daily_value):
     if pct is None:
@@ -180,7 +172,6 @@ def parse_date(date):
     except:
         return None
 
-
 def load_servings_by_recipe_id(csv_path):
     by_id = {}
     with open(csv_path, newline="", encoding="utf-8", errors="replace") as f:
@@ -197,12 +188,52 @@ def load_servings_by_recipe_id(csv_path):
                 by_id[recipe_id] = servings
     return by_id
 
+def load_ratings_by_recipe_id(csv_path):
+    by_id = {}
+    with open(csv_path, newline="", encoding="utf-8", errors="replace") as f:
+        for row in csv.DictReader(f):
+            recipe_id = row.get("recipeid", "").strip()
+            raw_rating = row.get("aggregatedrating", "").strip()
+            raw_count = row.get("reviewcount", "").strip()
+            
+            if not recipe_id: 
+                continue
+            
+            rating = None
+            rating_count = None
+            
+            if raw_rating and raw_rating.lower() != "na":
+                try:
+                    rating = float(raw_rating)
+                except (TypeError, ValueError):
+                    pass
+            
+            if raw_count and raw_count.lower() != "na":
+                try:
+                    rating_count = int(float(raw_count))
+                except (TypeError, ValueError):
+                    pass
+            
+            if rating is not None or rating_count is not None:
+                by_id[recipe_id] = (rating, rating_count)
+    
+    return by_id
+
 
 def parse_servings_from_link(link, servings_by_id):
     match = re.search(r"-(\d+)$", str(link or "").strip())
     if not match:
         return None
     return servings_by_id.get(match.group(1))
+
+def parse_ratings_from_link(link, ratings_by_id):
+    if not ratings_by_id:
+        return None, None
+    
+    match = re.search(r"-(\d+)$", str(link or "").strip())
+    if not match:
+        return None, None
+    return ratings_by_id.get(match.group(1), (None, None))
 
 
 def parse_direction_section_header(text):
@@ -252,7 +283,7 @@ def parse_directions(instructions):
     return directions
 
 
-def parse_row(row, servings_by_id=None):
+def parse_row(row, servings_by_id=None, ratings_by_id=None):
     """
     parse recipe (1 row in csv file)
     given: list; return dict
@@ -271,7 +302,9 @@ def parse_row(row, servings_by_id=None):
     date = parse_date(row['date'])
     link = row['link']
     servings = parse_servings_from_link(link, servings_by_id) if servings_by_id else None
-    recipe_data = {'name': row['name'], 'directions': directions, 'total_time': total_time, 'nutrition': nutrition, 'tags': tags, 'date': date, 'link': link, 'servings': servings}
+    rating, num_ratings = parse_ratings_from_link(link, ratings_by_id) if ratings_by_id else (None, None)
+    recipe_data = {'name': row['name'], 'directions': directions, 'total_time': total_time, 'nutrition': nutrition, 'tags': tags, 'date': date, 'link': link, 'servings': servings, 
+                   'rating': rating, 'num_ratings': num_ratings}
     ingredients_data = []
     used_fc_indices = set()
     current_section = None
@@ -293,14 +326,8 @@ def parse_row(row, servings_by_id=None):
 
         quantity, unit, container_size, _ = get_quantity(nlg_text)
 
-        ingredients_data.append({
-            'text': nlg_text,
-            'quantity': quantity,
-            'unit': unit,
-            'container_size': container_size,
-            'ingredient': ing_name,
-            'section_title': current_section,
-        })
+        ingredients_data.append({'text': nlg_text, 'quantity': quantity, 'unit': unit, 'container_size': container_size, 
+                                 'ingredient': ing_name, 'section_title': current_section})
 
     return recipe_data, ingredients_data
 

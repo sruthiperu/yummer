@@ -25,6 +25,8 @@ export type Recipe = {
     servings: number | null
     nutrition: Nutrition | null
     tags: string[] | null
+    rating?: number | null
+    num_ratings?: number | null
     date: string | null
     link: string | null
     ingredients?: Ingredient[]

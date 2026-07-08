@@ -40,7 +40,8 @@ def search(
     res = []
     for recipe, rank in results:
         res_dict = {"id": recipe.id, "name": recipe.name, "total_time": recipe.total_time, "nutrition": recipe.nutrition,
-                     "tags": recipe.tags, "link": recipe.link, "match_score": round(float(rank), 4)}
+                     "tags": recipe.tags, "rating": recipe.rating, "num_ratings": recipe.num_ratings, 
+                     "link": recipe.link, "match_score": round(float(rank), 4)}
         res.append(res_dict)
 
     return {"results": res, "total": total, "page": page, "limit": limit, "empty_reason": empty_reason}

@@ -10,13 +10,11 @@ import {displayAllergens, allergenContainsText, ALLERGEN_LEGEND} from "@/lib/all
 import {displayDietaryIcons, DIETARY_LEGEND} from "@/lib/dietaryIcons"
 import {formatRecipeTags} from "@/lib/recipeTags"
 import {groupIngredientsBySection, sectionKey, distributeSectionsToColumns} from "@/lib/ingredientSections"
-import {
-    groupDirectionsBySection,
-    directionSectionKey,
-} from "@/lib/directionSections"
+import {groupDirectionsBySection, directionSectionKey} from "@/lib/directionSections"
 import type {Ingredient, Instruction} from "@/types/recipe"
 import type {IngredientSection} from "@/lib/ingredientSections"
 import type {DirectionSection} from "@/lib/directionSections"
+import StarRating from "@/lib/StarRating"
 
 function formatNutritionWhole(n: number) {
     return `${Math.ceil(n)}`
@@ -168,18 +166,24 @@ export default function RecipePage() {
 
                 <div className="recipe_header_footer">
                     <div className="recipe_meta">
+                        {displayRecipe.rating != null && (
+                            <span className="meta_chip meta_chip--rating">
+                                <StarRating rating={displayRecipe.rating} num_ratings={displayRecipe.num_ratings} showCount size="md" />
+                            </span>
+                        )}
+
                         {displayRecipe.total_time && (
-                        <span className="meta_chip meta_chip--time">
-                            <i className="fa-regular fa-clock" />
-                            {displayRecipe.total_time} min
-                        </span>
+                            <span className="meta_chip meta_chip--time">
+                                <i className="fa-regular fa-clock" />
+                                {displayRecipe.total_time} min
+                            </span>
                         )}
 
                         {displayRecipe.servings && (
-                        <span className="meta_chip meta_chip--servings">
-                            <i className="fa-solid fa-user-group" />
-                            {displayRecipe.servings} {displayRecipe.servings === 1 ? "serving" : "servings"}
-                        </span>
+                            <span className="meta_chip meta_chip--servings">
+                                <i className="fa-solid fa-user-group" />
+                                {displayRecipe.servings} {displayRecipe.servings === 1 ? "serving" : "servings"}
+                            </span>
                         )}
 
                         {recipe.link && (
@@ -194,7 +198,7 @@ export default function RecipePage() {
 
                     {recipeTags.length > 0 && (
                         <div className="tags_rec">
-                        {recipeTags.map(({ id, label }) => (<span key={id} className="tag_rec">{label}</span>))}
+                            {recipeTags.map(({ id, label }) => (<span key={id} className="tag_rec">{label}</span>))}
                         </div>
                     )}
                 </div>
@@ -236,7 +240,7 @@ export default function RecipePage() {
                             setAiError("")}}
                             className="restore_btn"
                         > 
-                        Restore original
+                            Restore original
                         </button>
                     </div>
                 )}

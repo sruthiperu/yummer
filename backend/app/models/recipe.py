@@ -1,5 +1,5 @@
 from app.database import Base
-from sqlalchemy import Column, String, Integer, Boolean, ARRAY, DateTime, ForeignKey
+from sqlalchemy import Column, String, Integer, Numeric, Boolean, ARRAY, DateTime, ForeignKey
 from sqlalchemy.dialects.postgresql import JSONB, TSVECTOR
 
 
@@ -22,6 +22,8 @@ class Recipe(Base):
     # cook_time = Column(Integer, nullable=True)            # "make this more low-effort" --> AI modifies prep efforts
     nutrition = Column(JSONB, nullable=True)
     tags = Column(JSONB, nullable=True)
+    rating = Column(Numeric(2, 1), nullable=True)
+    num_ratings = Column(Integer, nullable=True)
     date = Column(DateTime, nullable=True)
     image = Column(String, nullable=True)                   # extract from recipe_link source
     link = Column(String, nullable=True)             

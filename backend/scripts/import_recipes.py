@@ -9,7 +9,7 @@ from app.database import SessionLocal
 from app.models.recipe import Recipe, Ingredient, RecipeIngredient
 
 from .normalize_ingredients import normalize_ingredient, get_flags, apply_flags
-from scripts.parse_recipe import parse_row, load_servings_by_recipe_id
+from scripts.parse_recipe import parse_row, load_servings_by_recipe_id, load_ratings_by_recipe_id
 from scripts.recipe_tags import compute_curated_tags
 
 
@@ -62,6 +62,7 @@ def import_recipes(dataset_path, start, limit):
         df = df.head(limit)
 
     servings_by_id = load_servings_by_recipe_id("data/recipes.csv")
+    ratings_by_id = load_ratings_by_recipe_id("data/recipes.csv")     
 
     db = SessionLocal()
     inserted, skipped, failed = 0, 0, 0
@@ -70,7 +71,7 @@ def import_recipes(dataset_path, start, limit):
         for i, row in df.iterrows():
 
             try:
-                recipe_data, ingredients_data = parse_row(row, servings_by_id)
+                recipe_data, ingredients_data = parse_row(row, servings_by_id, ratings_by_id)
                 if not recipe_data or not ingredients_data: 
                     skipped += 1
                     continue
@@ -91,11 +92,7 @@ def import_recipes(dataset_path, start, limit):
                     if not ing:
                         continue
 
-                    ingredient_flags.append({
-                        "is_vegetarian": ing.is_vegetarian,
-                        "is_vegan": ing.is_vegan,
-                        "is_gluten_free": ing.is_gluten_free,
-                    })
+                    ingredient_flags.append({"is_vegetarian": ing.is_vegetarian, "is_vegan": ing.is_vegan, "is_gluten_free": ing.is_gluten_free})
 
                     # link recipe and ingredient
                     link = RecipeIngredient(recipe_id=recipe.id, ingredient_id=ing.id, quantity=ing_data.get('quantity'), 

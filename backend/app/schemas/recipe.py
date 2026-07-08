@@ -32,6 +32,8 @@ class RecipeResponse(BaseModel):
     total_time: int | None
     nutrition: dict | None
     tags: list | None
+    rating: float | None
+    num_ratings: int | None
     date: datetime | None
     link: str | None
     class Config:
