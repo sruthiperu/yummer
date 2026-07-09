@@ -100,15 +100,15 @@ def search_by_ingredients(db: Session, ing_names: list[str], filters: dict = Non
                 r.total_time,
                 r.nutrition,
                 r.tags,
-                r.ratings,
-                r.num_ratings
+                r.rating,
+                r.num_ratings,
                 r.link,
                 r.description,
                 COUNT(DISTINCT ri.ingredient_id) AS matched_count
             FROM recipes r
             JOIN recipe_ingredients ri ON ri.recipe_id = r.id
             WHERE ri.ingredient_id = ANY(:ingredient_ids)
-            GROUP BY r.id, r.name, r.total_time, r.nutrition, r.tags, r.link, r.description
+            GROUP BY r.id, r.name, r.total_time, r.nutrition, r.tags, r.rating, r.num_ratings, r.link, r.description
         ),
 
         recipe_totals AS (
@@ -161,7 +161,7 @@ def search_by_ingredients(db: Session, ing_names: list[str], filters: dict = Non
         missing = get_missing_ingredients(db, r["id"], matched_ids)
 
         results.append({"id": r["id"], "name": r["name"], "total_time": r["total_time"], "nutrition": r["nutrition"], "tags": r["tags"],
-                        "rating": r["rating"], "num_rating": r["num_rating"], "link": r["link"], "matched_count": r["matched_count"], 
+                        "rating": r["rating"], "num_ratings": r["num_ratings"], "link": r["link"], "matched_count": r["matched_count"], 
                         "total_ingredients": r["total_ingredients"], "user_match_pct": float(r["user_match_pct"]), "recipe_match_pct": float(r["recipe_match_pct"]), 
                         "ingredients": r["ingredients"], "missing_ingredients": missing})
 
