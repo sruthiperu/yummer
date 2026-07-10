@@ -76,7 +76,7 @@ export default function CuratedTagFilters({selected, onChange, maxTime, onMaxTim
         <div className="filter_section">
           <p className="filter_section__label">Max Cook Time</p>
           <div className="filter_slider_row">
-            <input type="range" min={0} max={180} step={10} value={maxTime || 180}
+            <input type="range" min={1} max={180} step={1} value={maxTime || 180}
               onChange={(e) => {
                 const val = Number(e.target.value)
                 onMaxTimeChange(val >= 180 ? undefined : val)
@@ -85,9 +85,9 @@ export default function CuratedTagFilters({selected, onChange, maxTime, onMaxTim
             />
             <input
               type="number"
-              min={0}
+              min={1}
               max={180}
-              step={10}
+              step={1}
               value={maxTime ?? ""}
               placeholder="Any"
               onChange={(e) => {
@@ -106,18 +106,18 @@ export default function CuratedTagFilters({selected, onChange, maxTime, onMaxTim
         <div className="filter_section">
           <p className="filter_section__label">Max Calories</p>
           <div className="filter_slider_row">
-            <input type="range" min={5} max={1500} step={50} value={maxCalories || 1500}
+            <input type="range" min={5} max={1000} step={5} value={maxCalories || 1000}
               onChange={(e) => {
                 const val = Number(e.target.value)
-                onMaxCaloriesChange(val >= 1500 ? undefined : val)
+                onMaxCaloriesChange(val >= 1000 ? undefined : val)
               }}
               className="filter_slider"
             />
             <input
               type="number"
               min={5}
-              max={1500}
-              step={50}
+              max={1000}
+              step={10}
               value={maxCalories ?? ""}
               placeholder="Any"
               onChange={(e) => {
