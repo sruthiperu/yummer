@@ -70,8 +70,14 @@
 }
   
 /* sliders */
+.filter_slider_row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
 .filter_slider {
-    width: 100%;
+    flex: 1;
+    min-width: 0;
     -webkit-appearance: none;
     appearance: none;
     height: 6px;
@@ -100,6 +106,37 @@
     border: 2px solid white;
     box-shadow: 0 1px 3px rgba(0,0,0,0.2);
 }
+.filter_number_input {
+    width: 48px;
+    flex-shrink: 0;
+    padding: 4px 6px;
+    border: 1px solid rgb(220, 225, 230);
+    border-radius: 6px;
+    font-size: 12px;
+    font-family: inherit;
+    color: rgb(60, 60, 60);
+    text-align: right;
+    background: white;
+    outline: none;
+    -moz-appearance: textfield;
+}
+.filter_number_input::-webkit-outer-spin-button,
+.filter_number_input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+.filter_number_input:focus {
+    border-color: rgb(30, 180, 225);
+}
+.filter_number_input::placeholder {
+    color: rgb(150, 150, 150);
+    text-align: center;
+}
+.filter_unit {
+    flex-shrink: 0;
+    font-size: 12px;
+    color: rgb(120, 120, 120);
+}
 .filter_slider_labels {
     display: flex;
     justify-content: space-between;
@@ -121,8 +158,6 @@
     cursor: pointer;
     transition: all 0.3s;
     font-family: inherit;
-    font-size: 12px;
-    font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }

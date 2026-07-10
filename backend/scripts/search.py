@@ -79,7 +79,8 @@ def search_by_ingredients(db: Session, ing_names: list[str], filters: dict = Non
     time_filter = f"AND r.total_time <= {max_time}" if max_time else ""
 
     # matched_count priority, then rating
-    order = "matched_count DESC, mr.rating DESC NULLS LAST, mr.num_ratings DESC NULLS LAST"
+    # order = "matched_count DESC, mr.rating DESC NULLS LAST, mr.num_ratings DESC NULLS LAST"
+    order = """matched_count DESC, ((mr.num_ratings * mr.rating + 10 * 4.0) / NULLIF(mr.num_ratings + 10, 0)) DESC NULLS LAST"""
 
     # find recipes with any of ingredient matches
     # score -> % of user ingredients recipe already has
@@ -242,7 +243,8 @@ def parse_validate_tags(tags_str: Optional[str]) -> list[str]:
     return selected
 
 def order_by_rating(query):
-    return query.order_by(Recipe.rating.desc().nullslast(), Recipe.num_ratings.desc().nullslast())
+    # return query.order_by(Recipe.rating.desc().nullslast(), Recipe.num_ratings.desc().nullslast())
+    return query.order_by(((Recipe.num_ratings * Recipe.rating + 10 * 4.0) / (Recipe.num_ratings + 10)).desc().nullslast())         # weighted score
 
 
 class SortRecs(str, Enum):
