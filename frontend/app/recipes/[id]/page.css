@@ -13,7 +13,7 @@
 /* header */
 .recipe_header {
   margin-bottom: 12px;
-  padding-bottom: 24px;
+  padding-bottom: 32px;
   border-bottom: 1px solid rgba(30, 180, 225, 0.12);
 }
 
@@ -122,7 +122,7 @@
 .chatbox {
   position: relative;
   margin: 28px auto;
-  padding: 22px 22px 20px;
+  padding: 24px 22px 24px 22px;
   border-radius: 16px;
   max-width: 750px;
   justify-content: center;
@@ -296,7 +296,7 @@
 
 /* section titles */
 .nutrition_title, .ingredients_title, .directions_title {
-  margin: 28px 0 14px;
+  margin: 48px 0 14px;
   font-size: 21px;
   font-weight: 600;
   color: rgb(45, 45, 45);

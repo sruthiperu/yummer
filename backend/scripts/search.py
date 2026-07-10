@@ -1,18 +1,22 @@
 from sqlalchemy.orm import Session
-from sqlalchemy import text, func, or_, Float
+from sqlalchemy import text, func, Float        # or_
+from typing import Optional
 
 from app.models.recipe import Recipe, RecipeIngredient, Ingredient
 from scripts.normalize_ingredients import normalize_ingredient
+from scripts.recipe_tags import TAGS
 
 from enum import Enum    
 
 
-def search_recipes(db, query, filters, page=1, limit=20, sort="relevance"):
-    results, total = _search(db, query, filters, page, limit, sort)
+def search_recipes(db, query, filters, page=1, limit=20): # sort="relevance"):
+    # results, total = _search(db, query, filters, page, limit, sort)
+    results, total = _search(db, query, filters, page, limit)
 
     if total == 0:
         # search with no filters
-        results_no_filters, total_no_filters = _search(db, query, {}, page, limit, sort)
+        # results_no_filters, total_no_filters = _search(db, query, {}, page, limit, sort)
+        results_no_filters, total_no_filters = _search(db, query, {}, page, limit)
 
         if total_no_filters > 0:
             return [], 0, "filters_too_strict"
@@ -22,15 +26,19 @@ def search_recipes(db, query, filters, page=1, limit=20, sort="relevance"):
     return results, total, None
 
 
-def _search(db: Session, query: str, filters: dict, page: int = 1, limit: int = 20, sort="relevance"):
+def _search(db: Session, query: str, filters: dict, page: int = 1, limit: int = 20): # sort="relevance"):
+
     offset = (page - 1) * limit     # limit: per 20 recipes
 
-    base = db.query(Recipe, 
-                    func.ts_rank_cd(Recipe.search_vector, 
-                                    func.plainto_tsquery("english", query))     # convert to search terms
-                                    .label("rank")
+    base = db.query(Recipe, func.ts_rank_cd(Recipe.search_vector, 
+                    func.plainto_tsquery("english", query))     # convert to search terms
+                    .label("rank")
                     ).filter(Recipe.search_vector.op("@@")(func.plainto_tsquery("english", query)))
 
+    # apply tags
+    selected_tags = parse_validate_tags(filters.get("tags"))
+    for tag in selected_tags:
+        base = base.filter(Recipe.tags.contains([tag]))
 
     # apply filters
     if filters.get("min_time"):
@@ -42,30 +50,13 @@ def _search(db: Session, query: str, filters: dict, page: int = 1, limit: int = 
     if filters.get("min_calories"):
         base = base.filter(Recipe.nutrition["calories"].astext.cast(Float) >= filters["min_calories"])
 
-    if filters.get("vegan"):
-        base = base.filter(Recipe.tags.contains(["vegan"]))
-    if filters.get("vegetarian"):
-        base = base.filter(Recipe.tags.contains(["vegetarian"]))
-    if filters.get("gluten_free"):
-        base = base.filter(or_(Recipe.tags.contains(["gluten-free"]), Recipe.tags.contains(["is_gluten_free"])))
-
-    # sort recommendations
-    # results = (base.order_by(text("rank DESC")).offset(offset).limit(limit).all())
-    if sort == SortRecs.quickest:
-        base = base.order_by(Recipe.total_time.asc().nullslast())
-    elif sort == SortRecs.newest:
-        base = base.order_by(Recipe.date.desc().nullslast())
-    elif sort == SortRecs.calories_asc:
-        base = base.order_by(func.cast(Recipe.nutrition["calories"].astext, Float).asc().nullslast())
-    else:       # default is relevance
-        base = base.order_by(text("rank DESC"))
-    
+    base = order_by_rating(base)
     results = base.offset(offset).limit(limit).all()
 
     return results, base.count()
 
 
-def search_by_ingredients(db: Session, ing_names: list[str], filters: dict = None, page: int = 1, limit: int = 20, sort="relevance"):
+def search_by_ingredients(db: Session, ing_names: list[str], filters: dict = None, page: int = 1, limit: int = 20):    # sort="relevance"):
     offset = (page - 1) * limit
 
     # normalize ingredients
@@ -78,21 +69,21 @@ def search_by_ingredients(db: Session, ing_names: list[str], filters: dict = Non
         matched_ids.extend(ids)
     if not matched_ids: return [], 0
 
-    # sort recommendations
-    if sort == "quickest":
-        order = "mr.total_time ASC"
-    elif sort == "newest":
-        order = "mr.id DESC"
-    elif sort == "calories_asc":
-        order = "(mr.nutrition->>'calories')::float ASC NULLS LAST"
-    else:  # default is relevance
-        # order = "user_match_pct DESC, recipe_match_pct DESC"
-        order = "user_match_pct DESC, recipe_match_pct DESC, matched_count DESC"
+    selected_tags = parse_validate_tags(filters.get("tags", "")) if filters else []
+    tag_filter = ""
+    if selected_tags:
+        import json
+        tag_filter = f"AND r.tags @> '{json.dumps(selected_tags)}'::jsonb"
 
+    max_time = filters.get("max_time") if filters else None
+    time_filter = f"AND r.total_time <= {max_time}" if max_time else ""
+
+    # matched_count priority, then rating
+    order = "matched_count DESC, mr.rating DESC NULLS LAST, mr.num_ratings DESC NULLS LAST"
 
     # find recipes with any of ingredient matches
     # score -> % of user ingredients recipe already has
-    scored = db.execute(text("""
+    sql = f"""
         WITH matched_recipes AS (
             SELECT
                 r.id,
@@ -108,6 +99,8 @@ def search_by_ingredients(db: Session, ing_names: list[str], filters: dict = Non
             FROM recipes r
             JOIN recipe_ingredients ri ON ri.recipe_id = r.id
             WHERE ri.ingredient_id = ANY(:ingredient_ids)
+            {tag_filter}
+            {time_filter}
             GROUP BY r.id, r.name, r.total_time, r.nutrition, r.tags, r.rating, r.num_ratings, r.link, r.description
         ),
 
@@ -145,14 +138,11 @@ def search_by_ingredients(db: Session, ing_names: list[str], filters: dict = Non
         JOIN recipe_totals rt ON rt.recipe_id = mr.id
         JOIN recipe_ings ri ON ri.recipe_id = mr.id
 
-        ORDER BY """ + order + """
+        ORDER BY {order}
         LIMIT :limit OFFSET :offset
-    """), {
-        "ingredient_ids": matched_ids,
-        "user_ingredient_count": len(ing_names),
-        "limit": limit,
-        "offset": offset,
-    }).fetchall()
+    """
+
+    scored = db.execute(text(sql), {"ingredient_ids": matched_ids, "user_ingredient_count": len(ing_names), "limit": limit, "offset": offset}).fetchall()
     
 
     results = []
@@ -234,10 +224,26 @@ def get_suggestion(reason: str):
     return suggestions.get(reason, [])
 
 
+VALID_TAGS = set(TAGS)  # tags list
+
+def parse_validate_tags(tags_str: Optional[str]) -> list[str]:
+    """
+    parse comma-separated tags string, return validated list
+    """
+    
+    if not tags_str:
+        return []
+    
+    selected = [t.strip().lower() for t in tags_str.split(",") if t.strip()]
+    invalid = [t for t in selected if t not in VALID_TAGS]
+    if invalid:
+        raise ValueError(f"invalid tags: {', '.join(invalid)}")
+    
+    return selected
+
+def order_by_rating(query):
+    return query.order_by(Recipe.rating.desc().nullslast(), Recipe.num_ratings.desc().nullslast())
+
 
 class SortRecs(str, Enum):
-    relevance = "relevance"     # more relevant recipes have more user ingredients
-    quickest = "quickest"
-    newest = "newest"
-    calories_asc = "calories_asc"
-    # calories_desc = "calories_desc"
+    rating = "rating"

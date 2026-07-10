@@ -37,7 +37,7 @@ RecipeCardProps) {
 
     const router = useRouter()
 
-    const display_tags = formatRecipeTags(tags, 3)
+    const display_tags = formatRecipeTags(tags)
 
     const total_user_ings = user_ings?.length || 0
     const matched = Math.round(((user_match_pct ?? 0) / 100) * total_user_ings)

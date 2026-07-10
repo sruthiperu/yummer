@@ -57,19 +57,12 @@ export async function searchRecipes(query: string, params: Record<string, any> =
 }
 // search by ingredients
 export async function searchByIngredients(ingredients: string, params: Record<string, any> = {}) {
-  const searchParams = new URLSearchParams()
-  searchParams.set("ingredients", ingredients)
+  const searchParams = new URLSearchParams({ingredients, page: params.page || 1})
+  
+  if (params.tags) searchParams.set("tags", params.tags)
 
-  // only add params with actual values
-  Object.entries(params).forEach(([key, value]) => {
-    if (value !== undefined && value !== null && value !== false && value !== "") {
-      searchParams.set(key, String(value))
-    }
-  })
-
-  const url = `${API_URL}/search/by-ingredients?${searchParams.toString()}`
-
-  return fetchJSON<SearchResponse>(url)
+  const res = await fetch(`${API_URL}/search/by-ingredients?${searchParams}`)
+  return res.json()
 }
 
 

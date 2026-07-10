@@ -1,5 +1,5 @@
 .search_page {
-    max-width: 960px;
+    max-width: 1200px;
     margin: 0 auto;
     padding: 24px;
 }
@@ -126,4 +126,24 @@
 .page_btn:disabled {
     opacity: 0.5;
     cursor: not-allowed;
+}
+
+.search_layout {
+    display: flex;
+    gap: 24px;
+    align-items: flex-start;
+    margin-top: 20px;
+}
+.search_content {
+    flex: 1;
+    min-width: 0;
+}
+@media (max-width: 768px) {
+    .search_layout {
+        flex-direction: column;
+    }   
+    
+    .filter_panel {
+        max-width: 100%;
+    }
 }

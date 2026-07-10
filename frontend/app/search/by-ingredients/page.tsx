@@ -1,13 +1,12 @@
 "use client"
 
 import {useSearchParams, useRouter} from "next/navigation"
-import {useState} from "react"
 import {useQuery} from "@tanstack/react-query"
 import {searchByIngredients} from "@/lib/api"
 
 import RecipeCard from "../../recipe_card"
 import SearchBar from "../../search_bar"
-
+import CuratedTagFilters from "@/lib/tag_filters"
 import "../search.css"
 
 
@@ -15,43 +14,43 @@ export default function IngredientSearchPage() {
     
     const router = useRouter()
 
-    // read ingredients from url
     const searchParams = useSearchParams()
     const ingredients = searchParams.get("ingredients") || ""
-    const user_ingredients = ingredients.split(",")// .map(i => i.trim().toLowerCase()).filter(Boolean)
+    const user_ingredients = ingredients.split(",")
+    const tagsParam = searchParams.get("tags") || ""
+    const selectedTags = tagsParam ? tagsParam.split(",") : []
     
-    const [sort, setSort] = useState("relevance")
     const page = Number(searchParams.get("page") || 1)
     
     const {data, isLoading, isError} = useQuery({
-        queryKey: ["ingredient-search", ingredients, page, sort],
-        queryFn: () => searchByIngredients(ingredients, {page, sort}),
+        queryKey: ["ingredient-search", ingredients, page, tagsParam],
+        queryFn: () => searchByIngredients(ingredients, {page, tags: tagsParam}),
         enabled: ingredients.length >= 2,
         staleTime: 1000 * 60 * 2,
     })
 
+    const handleTagsChange = (newTags: string[]) => {
+        const params = new URLSearchParams()
+        params.set("ingredients", ingredients)
+        if (newTags.length > 0) {
+            params.set("tags", newTags.join(","))
+        }
+        params.set("page", "1")
+        router.push(`/search/by-ingredients?${params.toString()}`)
+    }
+
     return (
         <main className="search_page">
 
-            {/* search bar */}
             <SearchBar defaultValue={ingredients}/>
-            
 
-            {/* header for results */}
             {!isLoading && data && (
                 <div className="res_header">
                     <p className="res_count">{data.total > 0 ? `${data.total} results for "${ingredients}"` : `No results for "${ingredients}"`}</p>
-
-                    {data.total > 0 && (
-                        <select value={sort} onChange={e => setSort(e.target.value)} className="sort_select">
-                            <option value="relevance">Best match</option>
-                            <option value="quickest">Quickest first</option>
-                            <option value="newest">Latest</option>
-                            <option value="calories_asc">Lowest calories</option>
-                        </select>
-                    )}
                 </div>
             )}
+
+            <CuratedTagFilters selected={selectedTags} onChange={handleTagsChange} />
 
             {isLoading && (
                 <div className="res_grid">
@@ -61,7 +60,6 @@ export default function IngredientSearchPage() {
                 </div>
             )}
 
-            {/* error */}
             {isError && (
                 <div className="error">
                     <p className="error_title">Something went wrong</p>
@@ -69,7 +67,6 @@ export default function IngredientSearchPage() {
                 </div>
             )}
 
-            {/* empty */}
             {!isLoading && data?.total === 0 && (
                 <div className="empty">
                     <p className="empty_title">No recipes found for &quot;{ingredients}&quot;</p>
@@ -103,27 +100,26 @@ export default function IngredientSearchPage() {
                         />))}
                     </div>
                     
-                    {/* splitting up pages */}
                     <div className="page_split">
-
-                        {/* prev button */}
                         <button
                             disabled={page <= 1}
                             onClick={() => {
-                                router.push(`/search/by-ingredients?ingredients=${encodeURIComponent(ingredients)}&page=${page - 1}`)
+                                const params = new URLSearchParams(searchParams.toString())
+                                params.set("page", String(page - 1))
+                                router.push(`/search/by-ingredients?${params.toString()}`)
                             }}
                             className="page_btn"
                         >Previous</button>
 
-                        {/* next button */}
                         <button
                             disabled={data.results.length < 20}
                             onClick={() => {
-                                router.push(`/search/by-ingredients?ingredients=${encodeURIComponent(ingredients)}&page=${page + 1}`)
+                                const params = new URLSearchParams(searchParams.toString())
+                                params.set("page", String(page + 1))
+                                router.push(`/search/by-ingredients?${params.toString()}`)
                             }}
                             className="page_btn"
                         >Next</button>
-
                     </div>
                 </>
             )}
