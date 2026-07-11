@@ -101,7 +101,8 @@ def import_recipes(dataset_path, start, limit):
                                             section_title=ing_data.get('section_title'))
                     db.add(link)
 
-                recipe.tags = compute_curated_tags(recipe_data.get("tags"), recipe_data.get("total_time"), recipe_data.get("nutrition"), recipe_data.get("name"), ingredient_flags=ingredient_flags) or None
+                ingredient_names = [ing_data['ingredient'] for ing_data in ingredients_data if ing_data.get('ingredient')]
+                recipe.tags = compute_curated_tags(recipe_data.get("tags"), recipe_data.get("total_time"), recipe_data.get("nutrition"), recipe_data.get("name"), ingredient_flags=ingredient_flags, ingredient_names=ingredient_names) or None
                 inserted += 1
 
                 if inserted % 100 == 0: db.commit()

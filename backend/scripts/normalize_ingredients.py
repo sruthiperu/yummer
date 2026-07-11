@@ -112,8 +112,6 @@ def get_flags(name):
     else:
         flags["allergens"] = flags.get("allergens") or []
 
-    flags = infer_dietary_flags(name, flags)
-
     if substitute_markers.search(original_name):
         flags["allergens"] = [
             allergen for allergen in (flags.get("allergens") or [])
@@ -122,7 +120,10 @@ def get_flags(name):
         flags["vegetarian"] = True
         if vegan_markers.search(original_name) or flags.get("vegan") is True:
             flags["vegan"] = True
-
+        return flags  
+    
+    flags = infer_dietary_flags(name, flags)
+    
     return flags
 
 

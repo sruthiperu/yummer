@@ -1,6 +1,7 @@
 # Recipe tags from source tags, time, nutrition, ingredients
 
 import re
+from .ingredient_patterns import non_veg_markers, embedded_non_veg_markers, substitute_markers
 
 TAGS: list[str] = ["main-course", "side-dish", "protein", "vegetarian", "vegan", "gluten-free", "keto", "low-calorie", "under-15-min", "under-30-min", "under-45-min", "under-60-min"]
 TAG_SET = frozenset(TAGS)
@@ -116,7 +117,41 @@ def dietary_tags_from_ingredient_agg(agg: dict | None) -> set[str]:
     return dietary_tags_from_ingredients(ingredient_flags)
 
 
-def compute_dietary_tags(source_tags: list | None, title: str | None, ingredient_flags: list[dict] | None = None, ingredient_agg: dict | None = None) -> set[str]:
+def has_animal(text: str | None) -> bool:
+    """
+    returns true if the text contains an animal/meat term without a plant-based hint
+    """
+    if not text:
+        return False
+    
+    # check for plant-based hints first
+    if substitute_markers.search(text):
+        return False
+    
+    # check for animal/meat terms
+    if non_veg_markers.search(text) or embedded_non_veg_markers.search(text):
+        return True
+    
+    return False
+
+
+def strip_veg_tags_if_animal(found: set[str], title: str | None, ingredient_names: list[str] | None) -> set[str]:
+    """
+    remove vegetarian/vegan tags if title or any ingredient contains animal terms without any plant-based hints
+    """
+    texts = [t for t in [title] + list(ingredient_names or []) if t]
+    
+    has_plant_hint = any(substitute_markers.search(t) for t in texts)
+    
+    if not has_plant_hint:
+        if any(non_veg_markers.search(t) or embedded_non_veg_markers.search(t) for t in texts):
+            found.discard("vegetarian")
+            found.discard("vegan")
+    
+    return found
+
+
+def compute_dietary_tags(source_tags: list | None, title: str | None, ingredient_flags: list[dict] | None = None, ingredient_agg: dict | None = None, ingredient_names: list[str] | None = None) -> set[str]:
     """
     union dietary tags from source tags, title keywords, and ingredients
     """
@@ -134,6 +169,8 @@ def compute_dietary_tags(source_tags: list | None, title: str | None, ingredient
 
     if "vegan" in found:
         found.add("vegetarian")
+    
+    found = strip_veg_tags_if_animal(found, title, ingredient_names)
     
     return found
 
@@ -165,11 +202,11 @@ def tags_from_title(title: str | None) -> set[str]:
     return found
 
 
-def compute_curated_tags(source_tags: list | None, total_time: int | None, nutrition: dict | None, title: str | None = None, ingredient_flags: list[dict] | None = None) -> list[str]:
+def compute_curated_tags(source_tags: list | None, total_time: int | None, nutrition: dict | None, title: str | None = None, ingredient_flags: list[dict] | None = None, ingredient_names: list[str] | None = None) -> list[str]:
     """
     derive tags from raw food.com tags, time, nutrition, title, and ingredients
     """
-    
+
     found: set[str] = set()
     tag_set = {str(t).lower() for t in (source_tags or [])}
 
@@ -188,6 +225,8 @@ def compute_curated_tags(source_tags: list | None, total_time: int | None, nutri
         found.add(bucket)
 
     found |= tags_from_title(title)
-    found |= compute_dietary_tags(source_tags, title, ingredient_flags=ingredient_flags)
+    found |= compute_dietary_tags(source_tags, title, ingredient_flags=ingredient_flags, ingredient_names=ingredient_names)
+    found = strip_veg_tags_if_animal(found, title, ingredient_names)
 
     return [t for t in TAGS if t in found]
+
