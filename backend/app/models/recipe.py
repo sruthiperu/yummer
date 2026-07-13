@@ -25,7 +25,7 @@ class Recipe(Base):
     rating = Column(Numeric(2, 1), nullable=True)
     num_ratings = Column(Integer, nullable=True)
     date = Column(DateTime, nullable=True)
-    image = Column(String, nullable=True)                   # extract from recipe_link source
+    image = Column(String, nullable=True)                   # extract from recipe_link source, or online search
     link = Column(String, nullable=True)             
 
     search_vector = Column(TSVECTOR, nullable=True)

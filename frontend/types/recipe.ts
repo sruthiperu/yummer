@@ -28,6 +28,7 @@ export type Recipe = {
     rating?: number | null
     num_ratings?: number | null
     date: string | null
+    image?: string | null
     link: string | null
     ingredients?: Ingredient[]
 }

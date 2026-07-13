@@ -110,6 +110,7 @@ export default function SearchPage() {
                                     tags={recipe.tags}
                                     rating={recipe.rating}
                                     num_ratings={recipe.num_ratings}
+                                    image={recipe.image}
                                     match_score={recipe.match_score}
                                 />))}
                             </div>

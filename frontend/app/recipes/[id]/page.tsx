@@ -202,8 +202,17 @@ export default function RecipePage() {
                         </div>
                     )}
                 </div>
+
+                {/* image */}
+                {displayRecipe.image && (
+                    <img 
+                        src={displayRecipe.image} 
+                        alt={displayRecipe.name} 
+                        className="recipe_hero_image" 
+                    />
+                )}
             </section>
-            
+
             {/* AI chat */}
             <section className="chatbox">
                 <div className="chatbox_header">

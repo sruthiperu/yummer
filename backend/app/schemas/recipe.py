@@ -35,6 +35,7 @@ class RecipeResponse(BaseModel):
     rating: float | None
     num_ratings: int | None
     date: datetime | None
+    image: str | None = None
     link: str | None
     class Config:
         from_attributes = True

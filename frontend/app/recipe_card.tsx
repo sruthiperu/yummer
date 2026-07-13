@@ -15,6 +15,7 @@ type RecipeCardProps = {
     tags?: string[] | null
     rating?: number | null
     num_ratings?: number | null
+    image?: string | null
     match_score?: number
     user_match_pct?: number
     missing_ings?: string[]
@@ -32,7 +33,7 @@ function getProgressColor(pct: number): string {
     return "progress_low"
 }
 
-export default function RecipeCard({id, name, total_time, nutrition, tags, rating, num_ratings, match_score, user_match_pct, missing_ings = [], recipe_ings = [], user_ings = []}:
+export default function RecipeCard({id, name, total_time, nutrition, tags, rating, num_ratings, image, match_score, user_match_pct, missing_ings = [], recipe_ings = [], user_ings = []}:
 RecipeCardProps) {
 
     const router = useRouter()
@@ -45,50 +46,61 @@ RecipeCardProps) {
 
     return (
         <div onClick={() => router.push(`/recipes/${id}`)} className="card">
-            <h3 className="recipe_name">
-                {name}
-            </h3>
+            {/* image */}
+            {image ? (<img src={image} alt={name} className="card_image" />) : (
+                <div className="card_image_placeholder">
+                    <i className="fa-solid fa-utensils" />
+                </div>
+            )}
 
-            <div className="info">
-                {total_time && <span><i className="fa-regular fa-alarm-clock"></i> {total_time} min</span>}
-                {nutrition?.calories && (<span><i className="fa-brands fa-nutritionix"></i> {Math.ceil(nutrition.calories)} cal</span>)}
-
-                {rating != null && (                                                   
-                    <span className="info_rating">
+            {/* rest of the recipe */}
+            <div className="recipe_info">
+                <h3 className="recipe_name">
+                    {name}
+                </h3>
+                
+                {rating != null && (
+                    <div className="recipe_rating_row">
                         <StarRating rating={rating} num_ratings={num_ratings} showCount />
-                    </span>
+                    </div>
+                )}
+
+                <div className="info">
+                    {total_time && <span><i className="fa-regular fa-alarm-clock"></i> {total_time} min</span>}
+                    {nutrition?.calories && (<span><i className="fa-brands fa-nutritionix"></i> {Math.ceil(nutrition.calories)} cal</span>)}
+                </div>
+
+                {user_match_pct !== undefined && (
+                    <div className="ing_match">
+                        <div className="match_pct">
+                            {matched}/{total_user_ings} of your ingredients used
+                        </div>
+
+                        <div className="progress_bar">
+                            <div
+                                className={`progress_fill ${getProgressColor(pct)}`}
+                                style={{width: `${pct}%`}}
+                            />
+                        </div>
+
+                        {missing_ings.length > 0 && (
+                            <p className="missing_ings">
+                                You'd also need: {missing_ings.slice(0, 3).join(", ")}
+                                {missing_ings.length > 3 && `, and ${missing_ings.length - 3} more`}
+                            </p>
+                        )}
+                    </div>
+                )}
+
+                {display_tags.length > 0 && (
+                    <div className="tags_box">
+                        {display_tags.map(({ id, label }) => (
+                            <span key={id} className="tag">{label}</span>
+                        ))}
+                    </div>
                 )}
             </div>
-
-            {user_match_pct !== undefined && (
-                <div className="ing_match">
-                    <div className="match_pct">
-                        {matched}/{total_user_ings} of your ingredients used
-                    </div>
-
-                    <div className="progress_bar">
-                        <div
-                            className={`progress_fill ${getProgressColor(pct)}`}
-                            style={{width: `${pct}%`}}
-                        />
-                    </div>
-
-                    {missing_ings.length > 0 && (
-                        <p className="missing_ings">
-                            You'd also need: {missing_ings.slice(0, 3).join(", ")}
-                            {missing_ings.length > 3 && `, and ${missing_ings.length - 3} more`}
-                        </p>
-                    )}
-                </div>
-            )}
-
-            {display_tags.length > 0 && (
-                <div className="tags_box">
-                    {display_tags.map(({ id, label }) => (
-                        <span key={id} className="tag">{label}</span>
-                    ))}
-                </div>
-            )}
+            
         </div>
     )
 }

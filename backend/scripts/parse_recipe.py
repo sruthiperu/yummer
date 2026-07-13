@@ -259,6 +259,55 @@ def parse_direction_section_header(text):
     return format_section_title(raw.rstrip(":").strip())
 
 
+def load_images_by_recipe_id(csv_path):
+    """
+    load images from recipes.csv images column
+    returns dict[str, list[str]], maps recipe_id to list of image urls
+    """
+
+    by_id = {}
+    with open(csv_path, newline="", encoding="utf-8", errors="replace") as f:
+        for row in csv.DictReader(f):
+            recipe_id = row.get("recipeid", "").strip()
+            raw = row.get("images", "").strip()
+            if not recipe_id or not raw:
+                continue
+            
+            # if character(0) or empty -> no images
+            if raw.lower() in ("character(0)", "na", ""):
+                continue
+            
+            urls = []
+            matches = re.findall(r'"([^"]+)"', raw)
+            for url in matches:
+                if url.startswith("http"):
+                    urls.append(url)
+            if urls:
+                by_id[recipe_id] = urls
+    
+    return by_id
+
+
+def parse_image_from_link(link, images_by_id):
+    """
+    pull recipe id from link
+    return first image url
+    returns url string or None
+    """
+
+    if not images_by_id:
+        return None
+    
+    match = re.search(r"-(\d+)$", str(link or "").strip())
+    if not match:
+        return None
+    
+    recipe_id = match.group(1)
+    urls = images_by_id.get(recipe_id, [])
+
+    return urls[0] if urls else None
+
+
 def parse_directions(instructions):
     """
     parse recipenlg direction lines into step dicts with optional section_title
@@ -283,7 +332,7 @@ def parse_directions(instructions):
     return directions
 
 
-def parse_row(row, servings_by_id=None, ratings_by_id=None):
+def parse_row(row, servings_by_id=None, ratings_by_id=None, images_by_id=None):
     """
     parse recipe (1 row in csv file)
     given: list; return dict
@@ -303,8 +352,10 @@ def parse_row(row, servings_by_id=None, ratings_by_id=None):
     link = row['link']
     servings = parse_servings_from_link(link, servings_by_id) if servings_by_id else None
     rating, num_ratings = parse_ratings_from_link(link, ratings_by_id) if ratings_by_id else (None, None)
+    image = parse_image_from_link(link, images_by_id) if images_by_id else None
+    
     recipe_data = {'name': row['name'], 'directions': directions, 'total_time': total_time, 'nutrition': nutrition, 'tags': tags, 'date': date, 'link': link, 'servings': servings, 
-                   'rating': rating, 'num_ratings': num_ratings}
+                   'rating': rating, 'num_ratings': num_ratings, 'image': image}
     ingredients_data = []
     used_fc_indices = set()
     current_section = None
