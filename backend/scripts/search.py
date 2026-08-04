@@ -77,10 +77,32 @@ def search_by_ingredients(db: Session, ing_names: list[str], filters: dict = Non
 
     max_time = filters.get("max_time") if filters else None
     time_filter = f"AND r.total_time <= {max_time}" if max_time else ""
+    max_calories = filters.get("max_calories") if filters else None
+    calorie_filter = f"AND (r.nutrition->>'calories')::float <= {max_calories}" if max_calories else ""
+
+    # get total number of recipes
+    # Get total count before pagination
+    count_sql = f"""
+        SELECT COUNT(*) FROM (
+            SELECT r.id
+            FROM recipes r
+            JOIN recipe_ingredients ri ON ri.recipe_id = r.id
+            WHERE ri.ingredient_id = ANY(:ingredient_ids)
+            {tag_filter}
+            {time_filter}
+            {calorie_filter}
+            GROUP BY r.id
+        ) sub
+    """
+    total = db.execute(text(count_sql), {"ingredient_ids": matched_ids}).scalar()
 
     # matched_count priority, then rating
     # order = "matched_count DESC, mr.rating DESC NULLS LAST, mr.num_ratings DESC NULLS LAST"
-    order = """matched_count DESC, ((mr.num_ratings * mr.rating + 10 * 4.0) / NULLIF(mr.num_ratings + 10, 0)) DESC NULLS LAST"""
+    order = """
+        matched_count DESC, 
+        ((mr.num_ratings * mr.rating + 10 * 4.0) / NULLIF(mr.num_ratings + 10, 0)) DESC NULLS LAST,
+        mr.id ASC
+    """
 
     # find recipes with any of ingredient matches
     # score -> % of user ingredients recipe already has
@@ -103,6 +125,7 @@ def search_by_ingredients(db: Session, ing_names: list[str], filters: dict = Non
             WHERE ri.ingredient_id = ANY(:ingredient_ids)
             {tag_filter}
             {time_filter}
+            {calorie_filter}
             GROUP BY r.id, r.name, r.total_time, r.nutrition, r.tags, r.rating, r.num_ratings, r.link, r.description
         ),
 
@@ -156,8 +179,6 @@ def search_by_ingredients(db: Session, ing_names: list[str], filters: dict = Non
                         "rating": r["rating"], "num_ratings": r["num_ratings"], "image": r["image"], "link": r["link"], "matched_count": r["matched_count"], 
                         "total_ingredients": r["total_ingredients"], "user_match_pct": float(r["user_match_pct"]), "recipe_match_pct": float(r["recipe_match_pct"]), 
                         "ingredients": r["ingredients"], "missing_ingredients": missing})
-
-    total = len(scored)
 
     return results, total
 

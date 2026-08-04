@@ -1,13 +1,14 @@
 "use client"
 
 import {useSearchParams, useRouter} from "next/navigation"
-import {useState} from "react"
+import {useState, useEffect} from "react"
 import {useSearch} from "@/lib/useSearch"
 
 import RecipeCard from "../recipe_card"
 import SearchBar from "../search_bar"
 import CuratedTagFilters from "@/lib/tag_filters"
 import "./search.css"
+import LoadingAnimation from "@/lib/loadingAnimation";
 
 
 export default function SearchPage() {
@@ -39,6 +40,15 @@ export default function SearchPage() {
         router.push(`/search?${params.toString()}`)
     }
 
+    const [showLoading, setShowLoading] = useState(false)
+    useEffect(() => {
+        if (isLoading) {
+            const timer = setTimeout(() => setShowLoading(true), 300)
+            return () => clearTimeout(timer)
+        }
+        setShowLoading(false)
+    }, [isLoading])
+
     return (
         <main className="search_page">
 
@@ -57,19 +67,13 @@ export default function SearchPage() {
                 
                 {/* right: recipe grid */}
                 <div className="search_content">
-                    {!isLoading && data && (
+                    {/* when there are results */}
+                    {!isLoading && data && data.total > 0 && (
                         <div className="res_header">
-                            <p className="res_count">{data.total > 0 ? `${data.total} results for "${query}"` : `No results for "${query}"`}</p>
+                            <p className="res_count">{data.total} recipes</p>
                         </div>
                     )}
-
-                    {isLoading && (
-                        <div className="res_grid">
-                            {Array.from({ length: 6 }).map((_, i) => (
-                                <div key={i} className="skeleton_card" />
-                            ))}
-                        </div>
-                    )}
+                    {showLoading && <LoadingAnimation key={query + page} text="Cooking up some recipes for you!"/>}
 
                     {isError && (
                         <div className="error">
@@ -78,23 +82,10 @@ export default function SearchPage() {
                         </div>
                     )}
 
+                    {/* when there aren't any results */}
                     {!isLoading && data?.total === 0 && (
                         <div className="empty">
-                            <p className="empty_title">No recipes found for &quot;{query}&quot;</p>
-
-                            {data.suggestions && data.suggestions.length > 0 && (
-                                <ul className="suggestions_list">
-                                {data.suggestions.map((s: string) => (
-                                    <li key={s} className="suggestion_item">→ {s}</li>
-                                ))}
-                                </ul>
-                            )}
-
-                            {data.empty_reason === "filters_too_strict" && (
-                                <button onClick={() => router.push(`/search?q=${encodeURIComponent(query)}`)} className="rm_filters_btn">
-                                    Search without filters
-                                </button>
-                            )}
+                            <p className="empty_title">Sorry, no recipes found!</p>
                         </div>
                     )}
 
@@ -115,27 +106,35 @@ export default function SearchPage() {
                                 />))}
                             </div>
                             
-                            <div className="page_split">
-                                <button
-                                    disabled={page <= 1}
-                                    onClick={() => {
-                                        const params = new URLSearchParams(searchParams.toString())
-                                        params.set("page", String(page - 1))
-                                        router.push(`/search?${params.toString()}`)
-                                    }}
-                                    className="page_btn"
-                                >Previous</button>
+                            {data.total > 20 && (
+                                <div className="page_split">
+                                    <button
+                                        disabled={page <= 1}
+                                        onClick={() => {
+                                            const params = new URLSearchParams(searchParams.toString())
+                                            params.set("page", String(page - 1))
+                                            router.push(`/search?${params.toString()}`)
+                                            window.scrollTo({top: 0, behavior: "smooth"})
+                                        }}
+                                        className="page_btn"
+                                    >
+                                        <i className="fa-solid fa-arrow-left" />
+                                    </button>
 
-                                <button
-                                    disabled={data.results.length < 20}
-                                    onClick={() => {
-                                        const params = new URLSearchParams(searchParams.toString())
-                                        params.set("page", String(page + 1))
-                                        router.push(`/search?${params.toString()}`)
-                                    }}
-                                    className="page_btn"
-                                >Next</button>
-                            </div>
+                                    <button
+                                        disabled={page * 20 >= data.total}
+                                        onClick={() => {
+                                            const params = new URLSearchParams(searchParams.toString())
+                                            params.set("page", String(page + 1))
+                                            router.push(`/search?${params.toString()}`)
+                                            window.scrollTo({top: 0, behavior: "smooth"})
+                                        }}
+                                        className="page_btn"
+                                    >
+                                        <i className="fa-solid fa-arrow-right" />
+                                    </button>
+                                </div>
+                            )}
                         </>
                     )}
                 </div>

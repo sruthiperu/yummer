@@ -57,9 +57,13 @@ export async function searchRecipes(query: string, params: Record<string, any> =
 }
 // search by ingredients
 export async function searchByIngredients(ingredients: string, params: Record<string, any> = {}) {
-  const searchParams = new URLSearchParams({ingredients, page: params.page || 1})
+  const searchParams = new URLSearchParams()
+  searchParams.set("ingredients", ingredients)
+  searchParams.set("page", String(params.page || 1))
   
   if (params.tags) searchParams.set("tags", params.tags)
+  if (params.max_time) searchParams.set("max_time", String(params.max_time))
+  if (params.max_calories) searchParams.set("max_calories", String(params.max_calories))
 
   const res = await fetch(`${API_URL}/search/by-ingredients?${searchParams}`)
   return res.json()

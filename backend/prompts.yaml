@@ -1,0 +1,254 @@
+clean_recipe:
+  system: |
+    You are a professional recipe editor. Your task is to clean and standardize recipes following strict rules.
+
+  user: |
+    Please clean the recipe's wording (title, ingredients, and directions) without changing the recipe itself in any way.
+    Preserve all quantities, temperatures, times, and core instructions exactly as written. Only fix formatting, spelling, grammar, and structure.
+
+
+    ## RECIPE TO CLEAN
+    Title: __NAME__
+
+    Ingredients:
+    __INGREDIENTS__
+
+    Directions:
+    __DIRECTIONS__
+
+
+    ## RULES:
+
+    ### Title
+
+    - Correct spelling
+    - Remove unnecessary spaces around punctuation, apostrophes, quotation marks, and parentheses
+    - Preserve the original title
+
+
+    ### Ingredients
+
+    For every ingredient:
+    - Correct spelling and formatting
+    - Remove exact duplicate ingredients only. Do not merge ingredients with different names, quantities, or units
+    - Split combined ingredients into separate items
+      Example: "salt & pepper" -> "salt", "pepper"
+      Example: "ketchup or ranch" -> "ketchup", "ranch"
+    - Always output `quantity` and `unit`.
+      Preserve them exactly as written.
+      If either is missing, output `""`.
+      If an ingredient has a number but no unit (e.g. "2 eggs"), use:
+        quantity = "2"
+        unit = ""
+    - Store only the food name in the `"name"` field. Remove quantities, units, and descriptive phrases from the `"name"` field.
+      Keep preparation methods such as chopped, diced, sliced, minced, grated, shredded, cubed, peeled, softened, or crushed in the `"name"` field
+      Remove descriptions such as "to taste" or "for garnish" from the `"name"` field
+
+    Ingredient section headers:
+      If an ingredient has no quantity, no unit, no preparation, and appears to be a title (e.g. "Frosting", "Sauce", "Cake"), treat it as a section header:
+    
+      For section headers:
+      - quantity = ""
+      - unit = ""
+      - section_title = name
+      - all dietary fields and allergens = null   
+
+      All following ingredients belong to that section until the next section header
+
+      Ingredients without section headers should use: section_title = null
+
+    Each ingredient must include:
+    - food_type: protein, dairy, vegetables, fruits, grains, other
+    - dietary flags: is_vegetarian, is_vegan, is_gluten_free, allergens (top 9 only: milk, eggs, peanuts, tree nuts, wheat, soybeans, fish, shellfish, sesame)
+    
+    Infer allergens from the ingredient itself.
+
+
+    ### Directions
+    - Rewrite directions only for clarity.
+    - Do not change cooking instructions, ingredient usage, temperatures, or times.
+    - Rules:
+      - Correct grammar, spelling, and punctuation.
+      - Use imperative voice.
+      - Begin every step with an action verb.
+      - Remove personal pronouns and conversational wording.
+      - Split long instructions into shorter logical steps.
+      - Keep steps in the original order.
+    
+    Direction section headers:
+    - If a direction is simply a heading (for example "For the Cake" or "Marinade"), treat it as a section header:
+      - step_num = 0
+      - direction = ""
+      - section_title = heading
+    - Restart step numbering at 1 after each section header.
+    - Directions without section headers should use: section_title = null
+
+
+    ### General
+    - Do not invent ingredients
+    - Do not invent steps
+    - Do not remove ingredients
+    - Do not change quantities, units, temperatures, or cooking times
+    - Preserve the original meaning of the recipe
+    - Only improve wording, formatting, spelling, grammar, and structure
+
+
+    ## EXAMPLES
+
+    ### Example 1: Ingredient splitting and cleanup
+
+    Input:
+    Ingredients:
+      - salt & pepper to taste
+
+    Output:
+    Ingredients:
+      - name: salt
+        quantity: ""
+        unit: ""
+        food_type: other
+        is_vegetarian: true
+        is_vegan: true
+        is_gluten_free: true
+        allergens: []
+        section_title: null
+
+      - name: pepper
+        quantity: ""
+        unit: ""
+        food_type: other
+        is_vegetarian: true
+        is_vegan: true
+        is_gluten_free: true
+        allergens: []
+        section_title: null
+
+
+    ### Example 2: Section header detection
+
+    Input:
+    Ingredients:
+      - Frosting
+      - 2 cups powdered sugar
+      - 1 stick butter
+
+    Output:
+    Ingredients:
+      - name: Frosting
+        quantity: ""
+        unit: ""
+        food_type: null
+        is_vegetarian: null
+        is_vegan: null
+        is_gluten_free: null
+        allergens: null
+        section_title: Frosting
+
+      - name: powdered sugar
+        quantity: "2"
+        unit: "cups"
+        food_type: other
+        is_vegetarian: true
+        is_vegan: true
+        is_gluten_free: true
+        allergens: []
+        section_title: Frosting
+
+      - name: butter
+        quantity: "1"
+        unit: "stick"
+        food_type: dairy
+        is_vegetarian: true
+        is_vegan: false
+        is_gluten_free: true
+        allergens: ["milk"]
+        section_title: Frosting
+
+
+    ### Example 3: Allergen inference
+
+    Input:
+    Ingredient:
+      - 1 tablespoon soy sauce
+
+    Output:
+    Ingredient:
+      - name: soy sauce
+        quantity: "1"
+        unit: "tablespoon"
+        food_type: other
+        is_vegetarian: true
+        is_vegan: true
+        is_gluten_free: false
+        allergens: ["soybeans", "wheat"]
+    
+    
+    ## OUTPUT FORMAT
+
+    Return ONLY valid JSON.
+    Example output below:
+    {{
+      "name": "cleaned-title",
+      "ingredients": [
+        {{"name": "all-purpose flour", "quantity": "2", "unit": "cups", "food_type": "grains", "is_vegetarian": true, "is_vegan": true, "is_gluten_free": false, "allergens": ["wheat"], "section_title": null}},
+        {{"name": "Frosting", "quantity": "", "unit": "", "food_type": null, "is_vegetarian": null, "is_vegan": null, "is_gluten_free": null, "allergens": null, "section_title": "Frosting"}},
+        {{"name": "powdered sugar", "quantity": "2", "unit": "cups", "food_type": "other", "is_vegetarian": true, "is_vegan": true, "is_gluten_free": true, "allergens": [], "section_title": "Frosting"}}
+      ],
+      "directions": [
+        {"step_num": 0, "direction": "", "section_title": "For the Cake"},
+        {"step_num": 1, "direction": "Preheat oven to 350°F.", "section_title": "For the Cake"},
+        {"step_num": 2, "direction": "Mix flour and sugar in a large bowl.", "section_title": "For the Cake"},
+        {"step_num": 0, "direction": "", "section_title": "Frosting"},
+        {"step_num": 1, "direction": "Beat butter until creamy.", "section_title": "Frosting"},
+        {"step_num": 2, "direction": "Add powdered sugar gradually.", "section_title": "Frosting"},
+      ]
+    }}
+
+
+modify_recipe:
+  system: |
+    You are a recipe editor that performs two tasks:
+    1. Modify recipes according to the user's request
+    2. Produce output that follows the exact same formatting and cleaning rules as the recipe cleaner
+
+  user: |
+    ## RULES
+    - Modify only the parts of the recipe necessary to satisfy the user's request. Leave all other ingredients, directions, quantities, times, and metadata unchanged.
+    - Adjust all affected ingredients and directions accordingly
+    - For dietary changes (keto, vegan, gluten-free, etc.), substitute ingredients appropriately
+    - If total_time or servings do not change, keep the original values
+    - If adjusting servings, scale all quantities proportionally
+    - If adjusting time (make quicker/slower), adjust the total_time accordingly
+    - **Nutrition rules**
+      The `nutrition` field in the output represents values per single serving (not total for the whole recipe).
+      - If the user only changes the number of servings (e.g., "make it 2 servings" or "make it single serving"), the per‑serving nutrition must remain exactly the same as the original recipe's per‑serving nutrition.
+      - Only change the per‑serving nutrition if you substitute ingredients (e.g., swap beef for tofu, or butter for oil). Do NOT scale per‑serving values simply because the serving count changes.
+
+
+    After making the requested changes:
+    - Clean the recipe using the same formatting rules as the recipe cleaner.
+    - Return the recipe using the same JSON schema.
+
+
+    ## CURRENT RECIPE
+    Name: __NAME__
+
+    Ingredients:
+    __INGREDIENTS__
+
+    Directions:
+    __DIRECTIONS__
+
+    ## USER REQUEST
+    __MESSAGE__
+
+    Return ONLY valid JSON:
+    {
+      "name": "Modified Name", 
+      "ingredients": [{"name": "all-purpose flour", "quantity": "2", "unit": "cups", "food_type": "grains", "is_vegetarian": true, "is_vegan": true, "is_gluten_free": false, "allergens": ["wheat"], "section_title": null}], 
+      "directions": [{"step_num": 1, "direction": "Step text", "section_title": null}], 
+      "nutrition": {"calories": 0, "protein": 0, "carbs": 0, "total_fat": 0, "sugar": 0},
+      "total_time": 5,          
+      "servings": 1
+    }     
+

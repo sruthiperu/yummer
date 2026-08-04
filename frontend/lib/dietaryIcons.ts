@@ -13,9 +13,6 @@ type IngredientDietaryInput = {
   allergens?: string[] | null
 }
 
-function hasSeafoodAllergen(tagSet: Set<string>): boolean {
-  return tagSet.has("fish") || tagSet.has("shellfish")
-}
 
 export function displayDietaryIcons(ing: IngredientDietaryInput): DietaryIcon[] {
   const icons: DietaryIcon[] = []
@@ -30,11 +27,7 @@ export function displayDietaryIcons(ing: IngredientDietaryInput): DietaryIcon[] 
     icons.push({id: "vegetarian", label: "Vegetarian", iconClass: "fa-leaf"})
   }
   if (ing.is_vegetarian === false && ing.food_type === "protein") {
-    if (hasSeafoodAllergen(tagSet)) {
-      icons.push({id: "fish", label: "Fish / seafood", iconClass: "fa-fish"})
-    } else {
-      icons.push({id: "non_veg", label: "Non-vegetarian", iconClass: "fa-drumstick-bite"})
-    }
+    icons.push({id: "non_veg", label: "Non-vegetarian", iconClass: "fa-drumstick-bite"})
   }
   if (isGlutenFree) {
     icons.push({id: "gluten_free", label: "Gluten-free", iconClass: "fa-wheat-awn"})
@@ -44,8 +37,8 @@ export function displayDietaryIcons(ing: IngredientDietaryInput): DietaryIcon[] 
 }
 
 export const DIETARY_LEGEND: DietaryIcon[] = [
-  { id: "non_veg", label: "Non-vegetarian", iconClass: "fa-drumstick-bite" },
-  { id: "vegetarian", label: "Vegetarian", iconClass: "fa-leaf" },
-  { id: "vegan", label: "Vegan", iconClass: "fa-seedling" },
-  { id: "gluten_free", label: "Gluten-free", iconClass: "fa-wheat-awn" },
+  {id: "non_veg", label: "Non-vegetarian", iconClass: "fa-drumstick-bite"},
+  {id: "vegetarian", label: "Vegetarian", iconClass: "fa-leaf"},
+  {id: "vegan", label: "Vegan", iconClass: "fa-seedling"},
+  {id: "gluten_free", label: "Gluten-free", iconClass: "fa-wheat-awn"},
 ]

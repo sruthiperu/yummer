@@ -12,9 +12,12 @@
     margin-bottom: 16px;
 }
 .res_count {
-    color: #666;
-    margin: 0;
-    font-size: 14px;
+    color: rgb(70, 70, 70);
+    margin-bottom: -5px;
+    font-size: 20px;
+    text-transform: uppercase;
+    font-weight: 700;
+    letter-spacing: 0.04em;
 }
 
 .sort_select {
@@ -30,22 +33,12 @@
     border-color: #2D6A4F;
 }
 
+
 .res_grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
     gap: 16px;
-}
-
-.skeleton_card {
-    background: #f5f5f5;
-    height: 160px;
-    border-radius: 12px;
-    animation: pulse 1.5s ease-in-out infinite;
-}
-
-@keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.5; }
+    padding-bottom: 24px;
 }
 
 /* error */
@@ -73,7 +66,7 @@
 .empty_title {
     color: #333;
     margin: 0;
-    font-size: 16px;
+    font-size: 18px;
     font-weight: 500;
 }
 
@@ -104,29 +97,39 @@
 }
 
 /* splitting up pages */
-.pagination {
+.page_split {
     display: flex;
     justify-content: center;
-    gap: 8px;
-    margin-top: 32px;
+    gap: 10px;
 }
 .page_btn {
+    padding: 8px 18px;
+    border: 1px solid rgb(220, 225, 230);
+    border-radius: 10px;
     background: white;
-    border-radius: 20px;
-    border: 1px solid #ddd;
-    padding: 8px 16px;
-    font-size: 14px;
+    color: rgb(60, 60, 60);
+    font-size: 16px;
+    font-weight: 600;
     cursor: pointer;
-    transition: all 0.15s;
+    transition: all 0.2s;
+    font-family: inherit;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.5s ease;
 }
 .page_btn:hover:not(:disabled) {
-    color: #2D6A4F;
-    border-color: #2D6A4F;
+    font-size: 17px;
+    border-color: rgb(30, 180, 225);
+    background: rgba(30, 180, 225, 0.05);
+    color: rgb(8, 146, 192);
+    transform: translateY(-1px);
 }
 .page_btn:disabled {
-    opacity: 0.5;
+    opacity: 0.4;
     cursor: not-allowed;
 }
+
 
 .search_layout {
     display: flex;
@@ -138,6 +141,7 @@
     flex: 1;
     min-width: 0;
 }
+
 @media (max-width: 768px) {
     .search_layout {
         flex-direction: column;

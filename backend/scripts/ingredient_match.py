@@ -11,7 +11,7 @@ FILLERS = ("you can also", "throw some", "health conscious", "if desired", "as n
 # section headers for ingredients
 HEADER = re.compile(
     r"^(sauce|ingredients?|topping|filling|marinade|dressing|"
-    r"glaze|frosting|batter|crust|stuffing|garnish(?:es)?|fish)\s*\d*:?\s*$",
+    r"cake|glaze|frosting|batter|crust|stuffing|garnish(?:es)?|fish)\s*\d*:?\s*$",
     re.IGNORECASE,
 )
 FOR_THE_HEADER = re.compile(r"^for the\s+.+$", re.IGNORECASE)
@@ -24,11 +24,11 @@ TO_HEADER = re.compile(
 )
 FOR_SUBSECTION = re.compile(
     r"^for\s+(sauce|ingredients?|topping|filling|marinade|dressing|"
-    r"glaze|frosting|batter|crust|stuffing|garnish(?:es)?)\s*\d*:?\s*$",
+    r"cake|glaze|frosting|batter|crust|stuffing|garnish(?:es)?)\s*\d*:?\s*$",
     re.IGNORECASE,
 )
 SUCH_AS_HEADER = re.compile(r"^.+\ssuch as\s*$", re.IGNORECASE)
-SECTION_SUFFIX = (r"sauce|filling|topping|marinade|dressing|glaze|frosting|batter|crust|garnish|stuffing")
+SECTION_SUFFIX = (r"sauce|filling|topping|marinade|dressing|cake|glaze|frosting|batter|crust|garnish|stuffing")
 MULTIWORD_HEADER = re.compile(rf"^[a-z][a-z\s&'-]*\s+(?:{SECTION_SUFFIX})\s*\d*:?\s*:?\s*$", re.IGNORECASE)
 
 # most likely not ingredient section headers

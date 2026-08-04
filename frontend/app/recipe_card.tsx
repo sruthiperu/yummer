@@ -99,7 +99,23 @@ RecipeCardProps) {
                         ))}
                     </div>
                 )}
+
+                {/* AI modify button */}
+                <button
+                    className="card_clean_btn"
+                    data-tooltip="Customize this recipe!"
+
+                    // navigate to recipe page, no API call yet
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        router.push(`/recipes/${id}?cleaned=1`);
+                    }}
+                >
+                    <i className="fa-solid fa-pen-to-square"></i>
+                </button>
             </div>
+
+            
             
         </div>
     )
