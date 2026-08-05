@@ -4,6 +4,7 @@ export type Instruction = {
     step_num: number
     direction: string
     section_title?: string | null
+    modified?: boolean
 }
 
 export type Nutrition = {
@@ -16,6 +17,10 @@ export type Nutrition = {
     carbs: number
 }
 
+export type NutritionModified = Partial<
+    Record<"calories" | "protein" | "carbs" | "total_fat" | "sugar", boolean>
+>
+
 export type Recipe = {
     id: number
     name: string
@@ -24,6 +29,9 @@ export type Recipe = {
     total_time: number | null
     servings: number | null
     nutrition: Nutrition | null
+    nutrition_modified?: NutritionModified | null
+    total_time_modified?: boolean | null
+    servings_modified?: boolean | null
     tags: string[] | null
     rating?: number | null
     num_ratings?: number | null
@@ -46,4 +54,5 @@ export type Ingredient = {
     is_vegan?: boolean | null
     is_vegetarian?: boolean | null
     is_gluten_free?: boolean | null
+    modified?: boolean
 }

@@ -9,34 +9,25 @@ import {displayAllergens, allergenContainsText, ALLERGEN_LEGEND} from "@/lib/all
 import {displayDietaryIcons, DIETARY_LEGEND} from "@/lib/dietaryIcons"
 import {formatRecipeTags} from "@/lib/recipeTags"
 import {groupIngredientsBySection, sectionKey, distributeSectionsToColumns} from "@/lib/ingredientSections"
-import {groupDirectionsBySection, directionSectionKey} from "@/lib/directionSections"
-import type {Ingredient, Instruction} from "@/types/recipe"
+import {groupDirectionsBySection, directionSectionKey, filterRealDirectionSteps} from "@/lib/directionSections"
+import type {Ingredient, Instruction, Recipe} from "@/types/recipe"
 import type {IngredientSection} from "@/lib/ingredientSections"
 import type {DirectionSection} from "@/lib/directionSections"
 import StarRating from "@/lib/StarRating"
 import LoadingAnimation from "@/lib/loadingAnimation";
 
 
-// const [baselineRecipe, setBaselineRecipe] = useState(null);     // cleaned recipe
-
-
-function areIngredientsEqual(a: any, b: any): boolean {
-    return (a.name === b.name) && (a.quantity === b.quantity) && (a.unit === b.unit) && (a.container_size === b.container_size) && (a.section_title === b.section_title);
-}
-function areDirectionsEqual(a: any, b: any): boolean {
-    return (a.direction === b.direction) && (a.section_title === b.section_title);
-}
-function getModifiedIndices<T>(original: T[], modified: T[], comparator: (a: T, b: T) => boolean): Set<number> {
-    const modifiedIndices = new Set<number>();
-    const maxLen = Math.max(original.length, modified.length);
-    for (let i = 0; i < maxLen; i++) {
-        if (i >= original.length || i >= modified.length) {
-            modifiedIndices.add(i);
-        } else if (!comparator(original[i], modified[i])) {
-            modifiedIndices.add(i);
-        }
-    }
-    return modifiedIndices;
+function AiEditMarker() {
+    return (
+        <span
+            className="ai_edit_marker"
+            data-tooltip="Modified by AI"
+            aria-label="Modified by AI"
+            tabIndex={0}
+        >
+            <i className="fa-solid fa-pen-to-square ai_edit_pen" aria-hidden="true" />
+        </span>
+    );
 }
 
 function formatNutritionWhole(n: number) {
@@ -73,11 +64,8 @@ function DirectionSectionPanel({
                     return (
                         <li key={`${sectionIndex}-${localIndex}`} className="direction_tile">
                             <span className="direction_step">{localIndex + 1}</span>
-                            <p className="direction_text">
-                                {step.direction}
-                                {isModified && (<i className="fa-solid fa-pen-to-square" style={{ marginLeft: '6px', color: '#2D6A4F', fontSize: '0.8rem' }} />
-                                )}
-                            </p>
+                            <p className="direction_text">{step.direction}</p>
+                            {isModified && <AiEditMarker />}
                         </li>
                     );
                 })}
@@ -91,11 +79,15 @@ function IngredientSectionPanel({
     sectionIndex,
     startIndex,
     modifiedIndices,
+    showFoodTypes,
+    showDietary,
 } : {
     section: IngredientSection;
     sectionIndex: number;
     startIndex: number;
     modifiedIndices: Set<number>;
+    showFoodTypes: boolean;
+    showDietary: boolean;
 }) {
     return (
         <div className="ingredient_section">
@@ -110,6 +102,8 @@ function IngredientSectionPanel({
                             key={`${sectionIndex}-${localIndex}`}
                             ing={ing}
                             isModified={modifiedIndices.has(globalIndex)}
+                            showFoodTypes={showFoodTypes}
+                            showDietary={showDietary}
                         />
                     );
                 })}
@@ -118,14 +112,25 @@ function IngredientSectionPanel({
     );
 }
 
-function IngredientTile({ ing, isModified }: { ing: Ingredient; isModified?: boolean }) {
+function IngredientTile({
+    ing,
+    isModified,
+    showFoodTypes = false,
+    showDietary = false,
+}: {
+    ing: Ingredient;
+    isModified?: boolean;
+    showFoodTypes?: boolean;
+    showDietary?: boolean;
+}) {
     const qtyParts = [ing.quantity, ing.unit].filter(Boolean);
     const qty = ing.container_size ? `${qtyParts.join(" ")} (${ing.container_size})` : qtyParts.join(" ");
     const name = (ing.name && ing.name.trim()) || "Unknown ingredient";
-    const typeClass = ingredientTypeClass(ing.food_type);
+    const typeClass = showFoodTypes ? ingredientTypeClass(ing.food_type) : "neutral";
     const allergens = displayAllergens(ing.allergens);
     const allergenTooltip = allergenContainsText(allergens);
     const dietaryIcons = displayDietaryIcons(ing);
+    const showIcons = showDietary && (allergens.length > 0 || dietaryIcons.length > 0);
 
     return (
         <li className={`ingredient_tile ingredient_tile--${typeClass}`}>
@@ -142,27 +147,24 @@ function IngredientTile({ ing, isModified }: { ing: Ingredient; isModified?: boo
                     <i className="fa-solid fa-minus" aria-hidden="true" />
                 </span>
             )}
-            <span className="ingredient_name">
-                {name}
-                {isModified && (
-                    <i
-                        className="fa-solid fa-pen-to-square"
-                        style={{ marginLeft: '6px', color: '#2D6A4F', fontSize: '0.8rem' }}
-                    />
-                )}
-            </span>
-            {(allergens.length > 0 || dietaryIcons.length > 0) && (
-                <div className="ingredient_tile_icons">
-                    {allergens.length > 0 && (
-                        <span className="allergen_icon" data-tooltip={allergenTooltip} aria-label={allergenTooltip} tabIndex={0}>
-                            <span className="material-symbols-outlined" aria-hidden="true">allergies</span>
-                        </span>
+            <span className="ingredient_name">{name}</span>
+            {(showIcons || isModified) && (
+                <div className="ingredient_tile_trailing">
+                    {showIcons && (
+                        <div className="ingredient_tile_icons">
+                            {allergens.length > 0 && (
+                                <span className="allergen_icon" data-tooltip={allergenTooltip} aria-label={allergenTooltip} tabIndex={0}>
+                                    <span className="material-symbols-outlined" aria-hidden="true">allergies</span>
+                                </span>
+                            )}
+                            {dietaryIcons.map((d) => (
+                                <span key={d.id} className={`dietary_icon dietary_icon--${d.id}`} data-tooltip={d.label} aria-label={d.label} tabIndex={0}>
+                                    <i className={`fa-solid ${d.iconClass}`} aria-hidden="true" />
+                                </span>
+                            ))}
+                        </div>
                     )}
-                    {dietaryIcons.map((d) => (
-                        <span key={d.id} className={`dietary_icon dietary_icon--${d.id}`} data-tooltip={d.label} aria-label={d.label} tabIndex={0}>
-                            <i className={`fa-solid ${d.iconClass}`} aria-hidden="true" />
-                        </span>
-                    ))}
+                    {isModified && <AiEditMarker />}
                 </div>
             )}
         </li>
@@ -175,19 +177,26 @@ export default function RecipePage() {
     const id = Number(params.id)
     const {data: recipe, isLoading, isError} = useRecipe(id)
     const [message, setMessage] = useState("")     /* user types in input box */
-    const [modifiedRecipe, setModifiedRecipe] = useState(null)      /* AI modifies, or null */
-    const [aiLoading, setAiLoading] = useState(false) 
+    const [modifiedRecipe, setModifiedRecipe] = useState<Recipe | null>(null)      /* AI modifies, or null */
+    const [baselineRecipe, setBaselineRecipe] = useState<Recipe | null>(null)      /* cleaned (or pre-modify) baseline */
+    const [wasCleaned, setWasCleaned] = useState(false)
+    const [modifyLoading, setModifyLoading] = useState(false)
+    const [cleanLoading, setCleanLoading] = useState(false)
     const [aiError, setAiError] = useState("")
+    const [showFoodTypes, setShowFoodTypes] = useState(false)
+    const [showDietary, setShowDietary] = useState(false)
 
     const shouldClean = searchParams.get("cleaned") === "1";
-
 
     useEffect(() => {
         if (shouldClean && recipe && !modifiedRecipe) {
             const cached = sessionStorage.getItem(`cleaned-${id}`);
             if (cached) {
                 try {
-                    setModifiedRecipe(JSON.parse(cached));
+                    const cleaned = JSON.parse(cached) as Recipe;
+                    setModifiedRecipe(cleaned);
+                    setBaselineRecipe(cleaned);
+                    setWasCleaned(true);
                     sessionStorage.removeItem(`cleaned-${id}`);
                     return;
                 } catch {}
@@ -196,7 +205,7 @@ export default function RecipePage() {
         }
     }, [shouldClean, recipe, modifiedRecipe]);
 
-    if (aiLoading) {
+    if (cleanLoading) {
         return (
             <div className="ai_loading_overlay">
                 <LoadingAnimation text="Loading recipe…"/>
@@ -206,40 +215,73 @@ export default function RecipePage() {
     if (isLoading) return <div>Loading...</div>
     if (isError || !recipe) return <div>Recipe not found</div>
 
-    const displayRecipe = modifiedRecipe || recipe
-    const originalIngredients = recipe?.ingredients || [];
-    const displayIngredients = displayRecipe?.ingredients || [];
-    const modifiedIngredientIndices = getModifiedIndices(originalIngredients, displayIngredients, areIngredientsEqual);
-    const originalDirections = recipe?.directions || [];
-    const displayDirections = displayRecipe?.directions || [];
-    const modifiedDirectionIndices = getModifiedIndices(originalDirections, displayDirections, areDirectionsEqual);
+    const displayRecipe = modifiedRecipe || recipe;
+
+    // Pens only after Modify changes the baseline (Clean alone sets both to the same object)
+    const showEditMarks = Boolean(baselineRecipe && modifiedRecipe && modifiedRecipe !== baselineRecipe);
+    const displayDirections = filterRealDirectionSteps(displayRecipe.directions)
+    const modifiedIngredientIndices = new Set<number>(
+        showEditMarks
+            ? (displayRecipe.ingredients ?? [])
+                .map((ing, i) => (ing.modified ? i : -1))
+                .filter((i) => i >= 0)
+            : [],
+    );
+    const modifiedDirectionIndices = new Set<number>(
+        showEditMarks
+            ? displayDirections
+                .map((step, i) => (step.modified ? i : -1))
+                .filter((i) => i >= 0)
+            : [],
+    );
+
+    const nutritionKeys = ["calories", "protein", "carbs", "total_fat", "sugar"] as const;
+    const nutritionChanged = nutritionKeys.reduce((acc, key) => {
+        acc[key] = showEditMarks && Boolean(displayRecipe.nutrition_modified?.[key]);
+        return acc;
+    }, {} as Record<(typeof nutritionKeys)[number], boolean>);
 
     const recipeTags = formatRecipeTags(displayRecipe.tags)
     const ingredientSections = groupIngredientsBySection(displayRecipe.ingredients ?? [])
     const useSectionLayout = ingredientSections.length > 1
     const [leftSections, rightSections] = distributeSectionsToColumns(ingredientSections)
-    const directionSections = groupDirectionsBySection(displayRecipe.directions ?? [])
+    const directionSections = groupDirectionsBySection(displayDirections)
     const useDirectionSectionLayout = directionSections.length > 1
 
+    const timeChanged = showEditMarks && Boolean(displayRecipe.total_time_modified);
+    const servingsChanged = showEditMarks && Boolean(displayRecipe.servings_modified);
+
     async function handleModify() {
-        if (!message.trim()) {      /* if no input from user */
+        if (!message.trim()) {
             return
         }
-        setAiLoading(true)
+        // Always lock current on-screen recipe as pen baseline for this edit
+        setBaselineRecipe(displayRecipe);
+        setModifyLoading(true)
         setAiError("")
 
         try {
             const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/recipes/${id}/modify`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ message }),
+                body: JSON.stringify({
+                    message,
+                    recipe: {
+                        name: displayRecipe.name,
+                        ingredients: displayRecipe.ingredients,
+                        directions: displayRecipe.directions,
+                        nutrition: displayRecipe.nutrition,
+                        total_time: displayRecipe.total_time,
+                        servings: displayRecipe.servings,
+                    },
+                }),
             })
 
             if (!response.ok) {
                 throw new Error("handleModify() failed")
             }
 
-            const data = await response.json()      /* parse */
+            const data = await response.json()
 
             if (data.conflict) {
                 setAiError(data.conflict)
@@ -249,30 +291,36 @@ export default function RecipePage() {
         } catch (err) {
             setAiError("AI Error")
         } finally {
-            setAiLoading(false)
-            setMessage("")
+            setModifyLoading(false)
         }
     }
 
     async function handleClean() {
-        setAiLoading(true);
+        setCleanLoading(true);
         setAiError("");
-      
         try {
-            const response = await fetch(
-                `${process.env.NEXT_PUBLIC_API_URL}/recipes/${id}/clean`,
-                { method: "POST" }
-            );
-      
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/recipes/${id}/clean`, {
+                method: "POST",
+            });
             if (!response.ok) throw new Error("Clean failed");
-      
             const data = await response.json();
             setModifiedRecipe(data);
+            setBaselineRecipe(data);
+            setWasCleaned(true);
         } catch (err) {
             setAiError("AI Error");
         } finally {
-            setAiLoading(false);
+            setCleanLoading(false);
         }
+    }
+
+    function handleRestore() {
+        if (baselineRecipe) {
+            setModifiedRecipe(baselineRecipe);
+        } else {
+            setModifiedRecipe(null);
+        }
+        setAiError("");
     }
 
 
@@ -295,13 +343,14 @@ export default function RecipePage() {
                             <span className="meta_chip meta_chip--time">
                                 <i className="fa-regular fa-clock" />
                                 {displayRecipe.total_time} min
+                                {timeChanged && <AiEditMarker />}
                             </span>
                         )}
-
                         {displayRecipe.servings && (
                             <span className="meta_chip meta_chip--servings">
                                 <i className="fa-solid fa-user-group" />
                                 {displayRecipe.servings} {displayRecipe.servings === 1 ? "serving" : "servings"}
+                                {servingsChanged && <AiEditMarker />}
                             </span>
                         )}
 
@@ -346,29 +395,25 @@ export default function RecipePage() {
                         type="text"
                         value={message}
                         onChange={(e) => setMessage(e.target.value)}
-                        onKeyDown={(e) => e.key === "Enter" && handleModify()}
+                        onKeyDown={(e) => e.key === "Enter" && !modifyLoading && handleModify()}
                         placeholder="How would you like to change this recipe?"
-                        disabled={aiLoading}
+                        disabled={modifyLoading}
                         className="chatbox_input"
                     />
-                    <button onClick={handleModify} disabled={aiLoading || !message.trim()} className="change_btn">
-                        {aiLoading ? (<><i className="fa-solid fa-spinner fa-spin"/>Loading...</>) : (<>Modify<i className="fa-solid fa-pen-to-square"/></>)}
+                    <button onClick={handleModify} disabled={modifyLoading || !message.trim()} className="change_btn">
+                        {modifyLoading ? (<><i className="fa-solid fa-spinner fa-spin"/>Loading...</>) : (<>Modify<i className="fa-solid fa-pen-to-square"/></>)}
                     </button>
                 </div>
 
                 {aiError && <p className="error_msg">{aiError}</p>}
 
-                {modifiedRecipe && (
+                {showEditMarks && (
                     <div className="success_msg">
                         <span className="success_text">
                             <i className="fa-solid fa-circle-check"/> Recipe modified
                         </span>
-                        <button onClick={() => {
-                            setModifiedRecipe(null) 
-                            setAiError("")}}
-                            className="restore_btn"
-                        > 
-                            Restore original
+                        <button onClick={handleRestore} className="restore_btn">
+                            {wasCleaned ? "Restore cleaned" : "Restore original"}
                         </button>
                     </div>
                 )}
@@ -379,12 +424,19 @@ export default function RecipePage() {
                 <section className="nutrition_info">
                     <h2 className="nutrition_title">Nutrition <i className="fa-brands fa-nutritionix"></i></h2>
                     <div className="nutrition_layout">
-                        {[{label: "Calories", value: formatNutritionWhole(displayRecipe.nutrition.calories)}, {label: "Protein", value: formatNutritionGramsDecimal(displayRecipe.nutrition.protein)},
-                        {label: "Carbs", value: formatNutritionGrams(displayRecipe.nutrition.carbs)}, {label: "Fat", value: formatNutritionGrams(displayRecipe.nutrition.total_fat)},
-                        {label: "Sugar", value: formatNutritionGrams(displayRecipe.nutrition.sugar)}].map(({ label, value }) => (
-                            <div key={label} className={"nutrition_card"}>
+                        {([
+                            { label: "Calories", key: "calories" as const, value: formatNutritionWhole(displayRecipe.nutrition.calories) },
+                            { label: "Protein", key: "protein" as const, value: formatNutritionGramsDecimal(displayRecipe.nutrition.protein) },
+                            { label: "Carbs", key: "carbs" as const, value: formatNutritionGrams(displayRecipe.nutrition.carbs) },
+                            { label: "Fat", key: "total_fat" as const, value: formatNutritionGrams(displayRecipe.nutrition.total_fat) },
+                            { label: "Sugar", key: "sugar" as const, value: formatNutritionGrams(displayRecipe.nutrition.sugar) },
+                        ]).map(({ label, key, value }) => (
+                            <div key={label} className="nutrition_card">
                                 <div className="nutrition_label">{label}</div>
-                                <div className="nutrition_val">{value}</div>
+                                <div className="nutrition_val">
+                                    {value}
+                                    {nutritionChanged[key] && <AiEditMarker />}
+                                </div>
                             </div>
                         ))}
                     </div>
@@ -398,13 +450,31 @@ export default function RecipePage() {
                 </h2>
                 <div className="legend_content">
                     <div className="legend_row">
-                        <span className="legend_row_label">Food types</span>
+                        <label className="legend_check">
+                            <input
+                                type="checkbox"
+                                checked={showFoodTypes}
+                                onChange={(e) => setShowFoodTypes(e.target.checked)}
+                            />
+                            <span className="legend_check_box" aria-hidden="true" />
+                            <span className="legend_check_label">Food types</span>
+                        </label>
                         <div className="ingredient_legend">
-                            {INGREDIENT_LEGEND.map(({ type, label }) => (<span key={type} className={`legend_item legend_item--${type}`}>{label}</span>))}
+                            {INGREDIENT_LEGEND.map(({ type, label }) => (
+                                <span key={type} className={`legend_item legend_item--${type}`}>{label}</span>
+                            ))}
                         </div>
                     </div>
                     <div className="legend_row">
-                        <span className="legend_row_label">Dietary</span>
+                        <label className="legend_check">
+                            <input
+                                type="checkbox"
+                                checked={showDietary}
+                                onChange={(e) => setShowDietary(e.target.checked)}
+                            />
+                            <span className="legend_check_box" aria-hidden="true" />
+                            <span className="legend_check_label">Dietary</span>
+                        </label>
                         <div className="ingredient_icon_legend">
                             <span className="icon_legend_item">
                                 <span className="allergen_icon icon_legend_icon" aria-hidden="true">
@@ -436,6 +506,8 @@ export default function RecipePage() {
                                         sectionIndex={sectionIndex}
                                         startIndex={startIndex}
                                         modifiedIndices={modifiedIngredientIndices}
+                                        showFoodTypes={showFoodTypes}
+                                        showDietary={showDietary}
                                     />
                                 );
                             })}
@@ -459,6 +531,8 @@ export default function RecipePage() {
                                             sectionIndex={sectionIndex}
                                             startIndex={startIndex}
                                             modifiedIndices={modifiedIngredientIndices}
+                                            showFoodTypes={showFoodTypes}
+                                            showDietary={showDietary}
                                         />
                                     );
                                 })}
@@ -476,6 +550,8 @@ export default function RecipePage() {
                                             sectionIndex={sectionIndex}
                                             startIndex={startIndex}
                                             modifiedIndices={modifiedIngredientIndices}
+                                            showFoodTypes={showFoodTypes}
+                                            showDietary={showDietary}
                                         />
                                     );
                                 })}
@@ -489,6 +565,8 @@ export default function RecipePage() {
                                 key={`ing-${index}`}
                                 ing={ing}
                                 isModified={modifiedIngredientIndices.has(index)}
+                                showFoodTypes={showFoodTypes}
+                                showDietary={showDietary}
                             />
                         ))}
                     </ul>
@@ -518,26 +596,16 @@ export default function RecipePage() {
                     </div>
                 ) : (
                     <ol className="directions_list">
-                        {displayRecipe.directions
-                            ?.filter((step: Instruction) => step.direction && step.direction.trim() !== '')
-                            .map((step: Instruction, index: number) => {
-                                const isModified = modifiedDirectionIndices.has(index);
-                                return (
-                                    <li key={`${step.step_num}-${index}`} className="direction_tile">
-                                        <span className="direction_step">{step.step_num}</span>
-                                        <p className="direction_text">
-                                            {step.direction}
-                                            {isModified && (
-                                                <i
-                                                    className="fa-solid fa-pen-to-square"
-                                                    style={{ marginLeft: '6px', color: '#2D6A4F', fontSize: '0.8rem' }}
-                                                />
-                                            )}
-                                        </p>
-                                    </li>
-                                );
-                            })
-                        }
+                        {displayDirections.map((step: Instruction, index: number) => {
+                            const isModified = modifiedDirectionIndices.has(index);
+                            return (
+                                <li key={`direction-${index}`} className="direction_tile">
+                                    <span className="direction_step">{index + 1}</span>
+                                    <p className="direction_text">{step.direction}</p>
+                                    {isModified && <AiEditMarker />}
+                                </li>
+                            );
+                        })}
                     </ol>
                 )}
             </section>

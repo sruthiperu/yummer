@@ -355,7 +355,8 @@
 }
 .nutrition_card {
   flex: 0 0 auto;
-  width: 100px;
+  min-width: 100px;
+  width: max-content;
   background: white;
   border: 1px solid rgba(30, 180, 225, 0.25);
   border-radius: 12px;
@@ -377,12 +378,21 @@
   margin-bottom: 8px;
 }
 .nutrition_val {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: nowrap;
+  white-space: nowrap;
   font-size: 18px;
   font-weight: 600;
   color: rgb(8, 146, 192);
   font-variant-numeric: tabular-nums;
   /* letter-spacing: -0.01em; */
   line-height: 1.15;
+}
+.nutrition_val .ai_edit_marker {
+  margin-left: 6px;
+  flex-shrink: 0;
 }
 
 /* ingredients */
@@ -452,6 +462,8 @@
   display: flex;
   align-items: center;
   gap: 12px;
+  min-width: 0;
+  box-sizing: border-box;
   padding: 12px 14px;
   background: white;
   border: 1px solid rgba(30, 180, 225, 0.15);
@@ -462,50 +474,110 @@
   transform: translateY(-2px);
 }
 
-/* legend: panel with legends (food types, dietary) placed above one another */
+/* legend checklist */
 .legend_content {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  align-items: center;
-  gap: 10px 32px;
-  margin-bottom: 16px;
-  padding: 12px 16px;
-  background: rgba(30, 180, 225, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 14px;
+  padding: 14px 16px;
+  background: rgba(30, 180, 225, 0.08);
   border-radius: 12px;
 }
 .legend_row {
-  display: contents;
+  display: flex;
+  align-items: center;
+  gap: 12px 20px;
+  min-width: 0;
 }
-.legend_row_label {
+.legend_check {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  flex-shrink: 0;
+  cursor: pointer;
+  user-select: none;
+}
+.legend_check input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  pointer-events: none;
+}
+.legend_check_box {
+  flex-shrink: 0;
+  box-sizing: border-box;
+  width: 15px;
+  height: 15px;
+  border: 1.5px solid rgb(170, 175, 180);
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.85);
+  position: relative;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.legend_check_box::after {
+  content: "";
+  position: absolute;
+  left: 4px;
+  top: 1px;
+  width: 4px;
+  height: 8px;
+  border: solid rgb(30, 180, 225);
+  border-width: 0 1.5px 1.5px 0;
+  transform: rotate(45deg) scale(0);
+  opacity: 0;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+}
+.legend_check:hover .legend_check_box {
+  border-color: rgb(30, 180, 225);
+}
+.legend_check input:focus-visible + .legend_check_box {
+  outline: 2px solid rgba(17, 101, 127, 0.7);
+  outline-offset: 2px;
+}
+.legend_check input:checked + .legend_check_box {
+  border-color: rgb(140, 195, 220);
+  background: rgba(30, 180, 225, 0.25);
+}
+.legend_check input:checked + .legend_check_box::after {
+  transform: rotate(45deg) scale(1);
+  opacity: 1;
+}
+.legend_check_label {
+  color: rgb(100, 100, 100);
   font-size: 12px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: rgb(120, 120, 120);
+  line-height: 1.2;
   white-space: nowrap;
 }
-@media (max-width: 640px) {
-  .legend_content {
-    grid-template-columns: 1fr;
-    gap: 4px 0;
-  }
-  .legend_row_label {
-    margin-top: 6px;
-  }
+.legend_check input:checked ~ .legend_check_label {
+  color: rgb(100, 100, 100, 0.75);
 }
-/* legend (ingredient food types) */
-.ingredient_legend {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px 14px;
-}
-/* legend (allergen and dietary icons) */
+.ingredient_legend,
 .ingredient_icon_legend {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
+  justify-content: flex-end;
   gap: 8px 14px;
+  margin-left: auto;
+  min-width: 0;
+}
+@media (max-width: 640px) {
+  .legend_row {
+    flex-wrap: wrap;
+  }
+  .ingredient_legend,
+  .ingredient_icon_legend {
+    width: 100%;
+    justify-content: flex-start;
+    margin-left: 23px;
+  }
 }
 .icon_legend_item {
   display: inline-flex;
@@ -600,6 +672,12 @@
 .ingredient_tile--other:hover {
   border-color: rgba(156, 163, 175, 0.35);
 }
+.ingredient_tile--neutral {
+  background: rgba(255, 255, 255, 0.55);
+}
+.ingredient_tile--neutral:hover {
+  border-color: rgba(30, 180, 225, 0.25);
+}
 .ingredient_qty--vegetables {
   background: rgba(45, 106, 79, 0.15);
   color: rgb(45, 106, 79);
@@ -623,6 +701,10 @@
 .ingredient_qty--other {
   background: rgba(156, 163, 175, 0.2);
   color: rgb(156, 163, 175);
+}
+.ingredient_qty--neutral {
+  background: rgba(30, 180, 225, 0.1);
+  color: rgb(8, 146, 192);
 }
 
 /* ingredient quantities */
@@ -674,18 +756,34 @@
 .ingredient_name {
   flex: 1;
   min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   font-size: 15px;
   line-height: 1.4;
   color: rgb(50, 50, 50);
   font-weight: 500;
 }
 
+.ingredient_tile_trailing {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+  flex-shrink: 0;
+  max-width: 55%;
+}
 .ingredient_tile_icons {
   display: flex;
   align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
   gap: 6px;
-  margin-left: auto;
-  flex-shrink: 0;
+  min-width: 0;
+}
+.ingredient_tile_icons + .ai_edit_marker {
+  padding-left: 8px;
+  border-left: 1px solid rgba(95, 125, 255, 0.28);
 }
 
 /* allergen icons (top nine allergies: milk, eggs, peanuts, tree nuts, soy, wheat, fish, shellfish, sesame) */
@@ -848,8 +946,82 @@
   font-weight: 700;
 }
 .direction_text {
+  flex: 1;
+  min-width: 0;
   margin: 4px 0 0;
   font-size: 15px;
   line-height: 1.55;
   color: rgb(50, 50, 50);
+}
+.direction_tile > .ai_edit_marker {
+  flex-shrink: 0;
+  margin-left: auto;
+  align-self: center;
+}
+
+.ai_edit_marker {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  cursor: default;
+}
+.ai_edit_marker::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 6px 8px;
+  border-radius: 8px;
+  background: rgb(50, 50, 50);
+  color: white;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.15s, visibility 0.15s;
+  z-index: 10;
+}
+.ai_edit_marker:hover::after,
+.ai_edit_marker:focus-visible::after {
+  opacity: 0.85;
+  visibility: visible;
+}
+.nutrition_card > .ai_edit_marker {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+}
+.meta_chip .ai_edit_marker {
+  margin-left: 2px;
+}
+.meta_chip .ai_edit_pen {
+  font-size: 0.95rem;
+}
+
+.ai_edit_pen {
+  display: inline-block;
+  margin-left: 6px;
+  flex-shrink: 0;
+  font-size: 1.05rem;
+  line-height: 1;
+  background: linear-gradient(
+    135deg,
+    rgb(120, 235, 255) 0%,
+    rgb(75, 185, 255) 35%,
+    rgb(95, 125, 255) 70%,
+    rgb(155, 100, 255) 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+.ai_edit_marker .ai_edit_pen {
+  margin-left: 0;
+  font-size: 1.15rem;
 }
