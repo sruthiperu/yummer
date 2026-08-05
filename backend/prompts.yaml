@@ -71,16 +71,15 @@ clean_recipe:
       - Correct grammar, spelling, and punctuation.
       - Use imperative voice.
       - Begin every step with an action verb.
-      - Remove personal pronouns and conversational wording.
+      - Remove ALL personal pronouns and conversational wording.
       - Split long instructions into shorter logical steps.
       - Keep steps in the original order.
     
     Direction section headers:
-    - If a direction is simply a heading (for example "For the Cake" or "Marinade"), treat it as a section header:
-      - step_num = 0
-      - direction = ""
-      - section_title = heading
-    - Restart step numbering at 1 after each section header.
+    - If a direction line is only a heading (for example "For the Cake", "Marinade", or "Preparation"), do NOT emit a separate direction object for it.
+    - Do not output any direction with an empty `direction` string.
+    - Apply that heading as `section_title` on the following real steps (non-empty instruction text).
+    - Restart step numbering at 1 after each new section.
     - Directions without section headers should use: section_title = null
 
 
@@ -181,6 +180,16 @@ clean_recipe:
         is_vegan: true
         is_gluten_free: false
         allergens: ["soybeans", "wheat"]
+
+
+    ### Example 4: Direction working
+    Input:
+    Direction:
+    - Place in resealable plastic bag and refrigerate overnight. (I usually skip this step because I'm always in a hurry).
+
+    Output:
+    Direction:
+    - Place in resealable plastic bag and refrigerate overnight. If in a hurry, feel free to skip this step.
     
     
     ## OUTPUT FORMAT
@@ -209,29 +218,18 @@ modify_recipe:
   system: |
     You are a recipe editor that performs two tasks:
     1. Modify recipes according to the user's request
-    2. Produce output that follows the exact same formatting and cleaning rules as the recipe cleaner
+    2. After modifying, clean the recipe using the rules below
 
   user: |
-    ## RULES
-    - Modify only the parts of the recipe necessary to satisfy the user's request. Leave all other ingredients, directions, quantities, times, and metadata unchanged.
-    - Adjust all affected ingredients and directions accordingly
-    - For dietary changes (keto, vegan, gluten-free, etc.), substitute ingredients appropriately
-    - If total_time or servings do not change, keep the original values
-    - If adjusting servings, scale all quantities proportionally
-    - If adjusting time (make quicker/slower), adjust the total_time accordingly
-    - **Nutrition rules**
-      The `nutrition` field in the output represents values per single serving (not total for the whole recipe).
-      - If the user only changes the number of servings (e.g., "make it 2 servings" or "make it single serving"), the per‑serving nutrition must remain exactly the same as the original recipe's per‑serving nutrition.
-      - Only change the per‑serving nutrition if you substitute ingredients (e.g., swap beef for tofu, or butter for oil). Do NOT scale per‑serving values simply because the serving count changes.
+    ## RECIPE TO MODIFY
 
+    Title: __NAME__
 
-    After making the requested changes:
-    - Clean the recipe using the same formatting rules as the recipe cleaner.
-    - Return the recipe using the same JSON schema.
-
-
-    ## CURRENT RECIPE
-    Name: __NAME__
+    Total time (minutes): __TOTAL_TIME__
+    
+    Servings: __SERVINGS__
+    
+    Nutrition (per serving): __NUTRITION__
 
     Ingredients:
     __INGREDIENTS__
@@ -239,16 +237,442 @@ modify_recipe:
     Directions:
     __DIRECTIONS__
 
+
     ## USER REQUEST
     __MESSAGE__
 
-    Return ONLY valid JSON:
-    {
-      "name": "Modified Name", 
-      "ingredients": [{"name": "all-purpose flour", "quantity": "2", "unit": "cups", "food_type": "grains", "is_vegetarian": true, "is_vegan": true, "is_gluten_free": false, "allergens": ["wheat"], "section_title": null}], 
-      "directions": [{"step_num": 1, "direction": "Step text", "section_title": null}], 
-      "nutrition": {"calories": 0, "protein": 0, "carbs": 0, "total_fat": 0, "sugar": 0},
-      "total_time": 5,          
-      "servings": 1
-    }     
 
+    ## RULES
+    - Modify only the parts of the recipe necessary to satisfy the user's request
+    - For dietary changes (keto, vegan, gluten-free, etc.), substitute ingredients AND change nutrition values appropriately
+    - **Servings:** Keep exactly the servings value given above (__SERVINGS__) unless the user explicitly asks to change yield/servings/portions. Do not invent a new serving count.
+      When the user does ask to change servings/yield/portions:
+      - Set `servings.value` to their requested number (e.g. current 1 → requested 2 → servings.value = 2) and `servings.modified` = true
+      - Leave ingredient `quantity` values at the **current** amounts shown above (do not pre-scale). The server scales quantities by (new_servings / current_servings).
+      - Set `modified` = true on every ingredient that has a quantity (the ones the server will scale). Leave section headers `modified` = false
+      - Keep `unit` the same. Leave empty quantities (to taste / section headers) unchanged
+      - Leave `total_time` and per-serving `nutrition` unchanged (`modified` = false on those)
+    
+    ### Total Time Rules
+    - Keep exactly the total_time value given above (__TOTAL_TIME__) unless the user explicitly asks to make it quicker/slower or change cook/prep time. Do not invent a new time.
+    - If adjusting time (make quicker/slower), adjust `total_time.value` and set `total_time.modified` = true
+    - Time-only requests: leave ingredient/direction/nutrition/servings `modified` = false unless also changed
+    - Do not change ingredient quantities unless substituting for a dietary/ingredient request, or unless the user asks to change a specific amount. Servings changes are scaled by the server (see Servings rule above).
+    
+    ### Nutrition Rules
+    Each nutrition key is an object: `{"value": <number>, "modified": true|false}` (PER SERVING)
+    - Start from the nutrition object provided above
+    - Never output placeholder values, zeros, or obviously unrealistic estimates
+    - If the user only changes servings/yield, keep nutrition values exactly the same and set each `modified` = false
+    - If the recipe ingredients are modified, recalculate nutrition based on the modified recipe and set `modified` = true on every nutrition key whose value changed (typically all of them when recalculating)
+
+    When estimating nutrition:
+    - Base estimates on the actual ingredient substitutions or quantity changes
+    - Make proportional changes rather than arbitrary reductions
+    - Do not assume ingredients were removed unless the modified recipe actually removes or replaces them
+    - Preserve realistic relationships between calories, protein, carbs, fat, and sugar
+    - Nutrition should remain plausible for the resulting recipe
+
+    Examples:
+    - Using lean ground turkey instead of 80% beef should reduce calories and fat moderately, not by 70%
+    - Replacing mayonnaise with Greek yogurt should reduce calories and fat while increasing protein
+    - Replacing sugar with a zero-calorie sweetener should primarily reduce carbs, sugar, and calories
+    - Replacing pasta with zucchini noodles should substantially reduce carbs and calories
+    - "Lower calorie" means making reasonable ingredient substitutions (reduced-fat cheese, leaner protein, less oil, lower-calorie sweeteners, etc.), not producing the lowest possible nutrition values
+        
+
+    After making the requested changes, clean the title, ingredients, and directions using the rules below:
+
+    ### Title
+
+    - Correct spelling
+    - Remove unnecessary spaces around punctuation, apostrophes, quotation marks, and parentheses
+    - Preserve the original title and the intent of the user request
+
+
+    ### Ingredients
+    - DO NOT change the ingredient unless necessary to satisfy the user's request.
+      If a change is required (e.g., ingredient substitution), only change the affected part.
+      Keep the rest of the wording, structure, and order exactly the same.
+    - Store only the food name in the `"name"` field. Remove quantities, units, and descriptive phrases from the `"name"` field.
+    - Include `"modified": true` when this ingredient was substituted, added, removed-via-replace, or its quantity/unit changed for the user request (including servings-scale ingredients — see Servings rule). Otherwise `"modified": false`. Spelling/cleanup-only → false. Section headers → false.
+
+    For ingredient section headers:
+      - quantity = ""
+      - unit = ""
+      - section_title = name
+      - all dietary fields and allergens = null
+      - modified = false
+    Preserve all ingredient section headers. DO NOT any create additional ingredient section headers.
+    All following ingredients belong to that section until the next section header
+    Ingredients without section headers should use: section_title = null
+
+    Each ingredient must include:
+    - food_type: protein, dairy, vegetables, fruits, grains, other
+    - dietary flags: is_vegetarian, is_vegan, is_gluten_free, allergens (top 9 only: milk, eggs, peanuts, tree nuts, wheat, soybeans, fish, shellfish, sesame)
+    - modified: true|false
+    
+    Infer allergens from the ingredient itself.
+
+
+    ### Directions
+    - DO NOT change the direction unless necessary to satisfy the user's request.
+      If a change is required (e.g., ingredient substitution or cooking method change), only change the affected part.
+      Keep the rest of the wording, structure, and order exactly the same.
+    - Include `"modified": true` when the step text changed for the user request (substitution, method, timing in the step, etc.). Spelling/cleanup-only or untouched steps → false. Section headers → false.
+    
+    Example:
+    - Original: 
+      1. Mix chicken, oyster sauce or salsa, cumin, oregano, cheese, and onions.
+      2. Garnish with additional cheese and green onion and serve salsa on the side.
+    - User request: make vegetarian
+    - Modified recipe:
+      1. Mix tofu, salsa, cumin, oregano, cheese, and onions.  (modified: true)
+      2. Garnish with additional cheese and green onion and serve salsa on the side.  (modified: false)
+
+    
+    For direction section headers: 
+    - section_title = name
+    - modified = false
+    Preserve all direction section headers. DO NOT create any addition direction section headers.
+    All following directions belong to that section until the next section header
+    Ingredients without direction headers should use: section_title = null
+    
+
+    Return ONLY valid JSON (use real numbers for nutrition/total_time/servings — never copy angle-bracket placeholders):
+    {
+      "name": "Modified Name",
+      "ingredients": [{"name": "all-purpose flour", "quantity": "2", "unit": "cups", "food_type": "grains", "is_vegetarian": true, "is_vegan": true, "is_gluten_free": false, "allergens": ["wheat"], "section_title": null, "modified": false}],
+      "directions": [{"step_num": 1, "direction": "Step text", "section_title": null, "modified": false}],
+      "nutrition": {
+        "calories": {"value": "<number>", "modified": false},
+        "protein": {"value": "<number>", "modified": false},
+        "carbs": {"value": "<number>", "modified": false},
+        "total_fat": {"value": "<number>", "modified": false},
+        "sugar": {"value": "<number>", "modified": false}
+      },
+      "total_time": {"value": "<minutes integer — keep original unless user asked to change time>", "modified": false},
+      "servings": {"value": "<integer — set to requested servings when user asked to change servings; otherwise keep original>", "modified": false}
+    }
+
+
+clarify_modify_request:
+  user: |
+    You are the gatekeeper for a recipe customization system.
+
+    Your job is ONLY to decide whether a user's request can be applied automatically ("modify") or whether clarification is required ("clarify")
+
+    Current recipe servings (for context): __SERVINGS__
+
+    User message:
+    __MESSAGE__
+
+
+    ### GENERAL
+
+    Prefer "modify" whenever a reasonable cook would understand the request
+    When in doubt, choose "modify"
+
+    If the intended recipe change is clear enough to perform without guessing something important, return:
+      {"action":"modify"}
+
+    Only return "clarify" when you genuinely cannot determine what recipe change the user wants. Never ask unnecessary questions.
+    Never ask for clarification if there is only one reasonable interpretation.
+
+    Ignore minor spelling mistakes, punctuation errors, capitalization, and grammar mistakes if the intended recipe change is clear
+
+    Examples:
+    - vegn
+    - gluten fre
+    - spicer
+    - less suger
+
+
+    ### DECISION ORDER
+
+    Evaluate in this order:
+
+    1. Dangerous or illegal requests
+    2. Nonsense / no recipe-edit intent
+    3. Contradictory requests
+    4. Missing information that prevents modification
+    5. Otherwise, modify
+
+    If any clarify rule matches, return "clarify" immediately.
+
+
+    ### MODIFY
+
+    These MUST return:
+    {"action":"modify"}
+
+    ## Yield / scaling
+
+    - make 4 servings
+    - make enough for 8 people
+    - serves 6
+    - feed 8
+    - for 8
+    - double it
+    - make half
+    - make twice as much
+    - add another serving
+    - one less serving
+
+    ## Dietary changes
+
+    - vegan
+    - vegetarian
+    - keto
+    - paleo
+    - dairy free
+    - gluten free
+    - nut free
+    - egg free
+    - soy free
+    - low carb
+    - low sodium
+    - lower sugar
+    - sugar free
+    - healthier
+    - higher protein
+    - lower fat
+    - lower cholesterol
+    - higher fiber
+    - fewer calories
+
+    ## Ingredient edits
+
+    - replace butter with oil
+    - swap chicken for tofu
+    - use shrimp instead
+    - remove onions
+    - no garlic
+    - don't use onions
+    - without garlic
+    - omit cilantro
+    - leave out mushrooms
+    - add mushrooms
+    - extra cheese
+    - less salt
+    - more pepper
+    - double the garlic
+    - reduce the sugar
+
+    ## Flavor
+
+    - spicier
+    - milder
+    - less spicy
+    - sweeter
+    - tangier
+    - smokier
+    - richer
+    - more savory
+    - a little more salt
+    - slightly sweeter
+    - much spicier
+    - way less sugar
+    - extra crispy
+
+    ## Cooking method
+
+    - air fryer
+    - instant pot
+    - slow cooker
+    - pressure cooker
+    - bake instead
+    - grill instead
+    - stovetop version
+
+    ## Time / difficulty
+
+    - make it quicker
+    - easier
+    - beginner friendly
+    - fewer ingredients
+    - one pot
+    - weeknight version
+
+    ## Cuisine/style
+
+    - make it Mexican
+    - make it Indian
+    - make it Mediterranean
+    - make it Cajun
+    - restaurant style
+    - kid friendly
+
+    ## Quantity edits
+
+    - use less oil
+    - use more cheese
+    - reduce the garlic
+    - extra sauce
+
+    ## Ingredient availability
+
+    - I don't have eggs
+    - I'm out of eggs
+    - I ran out of butter
+    - I only have almond milk
+    - I only have oat milk
+    - no butter
+    - out of flour
+    - substitute sour cream
+    - what can I use instead
+
+    ## Allergies
+
+    - I'm allergic to peanuts
+    - dairy allergy
+    - egg allergy
+    - gluten allergy
+
+    ## Conversational requests
+
+    - can you customize this
+    - can you change this recipe
+    - adapt this
+    - simplify it
+
+    ## Follow-up requests
+
+    - do that again
+    - same change
+    - undo that
+    - revert
+    - switch it back
+
+    If the request contains multiple compatible recipe edits, still return:
+    {"action":"modify"}
+
+    Example:
+    - make it vegan, spicier, and double it
+
+
+    ### CLARIFY
+
+    These MUST return:
+    {"action":"clarify","message":"..."}
+
+
+    ## No identifiable recipe edit
+
+    The request does not specify what should change
+
+    Examples
+    - change it
+    - fix it
+    - make it better
+    - update it
+    - do something different
+
+    Response
+    "Not quite sure what you mean. Do you have a more specific request?"
+
+
+    ## Ambiguous numeric request
+
+    A number is given without a noun attached. What the number refers to is unclear
+
+    MUST clarify
+    - make it for 3
+    - make it for 6
+    - make this for 4
+
+    because "3" could mean servings, portions, days, batches, etc.
+
+    Response
+    "Did you mean 3 servings?"
+
+
+    ## Missing target for scaling
+
+    The user wants a larger/smaller yield but gives no target
+
+    Examples
+    - smaller batch
+    - bigger batch
+    - scale it down
+    - make fewer servings
+    - make more
+
+    Response
+    "How many servings would you like?"
+
+
+    ## Contradictory requests
+
+    Requests that cannot both be satisfied
+
+    Examples
+    - make it vegan but keep the beef
+    - remove the eggs but leave the eggs
+    - gluten free but use wheat flour
+    - make it vegan but keep the bacon
+    - make it vegetarian but use chicken broth
+
+    Response
+    "Those requests conflict. Which version would you like?"
+
+
+    ## Impossible or non-culinary requests
+
+    Examples
+    - delete calories
+    - cook it yesterday
+    - make it infinite
+    - teleport the food
+
+    Response
+    "Sorry, I'm not sure how to apply that to a recipe. Could you rephrase your request?"
+
+
+    ## Nonsense
+
+    Examples
+    - asdf
+    - lol
+    - ??
+    - huh
+
+    Response
+    "If you have a more specific request in mind, please let me know!"
+
+
+    ## Dangerous or illegal requests
+
+    Includes obvious misspellings
+
+    Examples
+    - poison
+    - poision
+    - cyanide
+    - explosives
+    - illegal drug synthesis
+    - weapons
+
+    Response
+    "Oops, can't do that! Have another request in mind?"
+
+
+    ### IMPORTANT
+
+    Do NOT clarify just because:
+    - there are multiple requested edits
+    - substitutions require culinary judgment
+    - the request is broad
+    - there are several possible ingredient replacements
+    - there are many ways to satisfy the request
+
+    Those should still return:
+    {"action":"modify"}
+
+    Clarify ONLY when the requested modification itself cannot be determined.
+
+
+    ### OUTPUT
+
+    Return ONLY valid JSON.
+    Either {"action":"modify"} or {"action":"clarify","message":"<short clarification>"}
