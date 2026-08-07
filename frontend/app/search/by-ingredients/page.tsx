@@ -1,13 +1,14 @@
 "use client"
 
 import {useSearchParams, useRouter} from "next/navigation"
-import {useState, useEffect} from "react"
+import {useState} from "react"
 import {useQuery} from "@tanstack/react-query"
 import {searchByIngredients} from "@/lib/api"
 
 import RecipeCard from "../../recipe_card"
 import SearchBar from "../../search_bar"
 import CuratedTagFilters from "@/lib/tag_filters"
+import LoadingAnimation from "@/lib/loadingAnimation"
 import "../search.css"
 
 
@@ -26,7 +27,7 @@ export default function IngredientSearchPage() {
     
     const page = Number(searchParams.get("page") || 1)
     
-    const {data, isLoading, isError} = useQuery({
+    const {data, isFetching, isError} = useQuery({
         queryKey: ["ingredient-search", ingredients, page, tagsParam, maxTime, maxCalories],
         queryFn: () => searchByIngredients(ingredients, {
             page, 
@@ -38,6 +39,8 @@ export default function IngredientSearchPage() {
         staleTime: 1000 * 60 * 2,
     })
 
+    const showLoading = isFetching && !data
+
     const handleTagsChange = (newTags: string[]) => {
         const params = new URLSearchParams()
         params.set("ingredients", ingredients)
@@ -47,15 +50,6 @@ export default function IngredientSearchPage() {
         params.set("page", "1")
         router.push(`/search/by-ingredients?${params.toString()}`)
     }
-
-    const [showLoading, setShowLoading] = useState(false)
-    useEffect(() => {
-        if (isLoading) {
-            const timer = setTimeout(() => setShowLoading(true), 300)
-            return () => clearTimeout(timer)
-        }
-        setShowLoading(false)
-    }, [isLoading])
 
     return (
         <main className="search_page">
@@ -75,19 +69,17 @@ export default function IngredientSearchPage() {
                 
                 {/* Right content area */}
                 <div className="search_content">
-                    {!isLoading && data && data.total > 0 && (
+                    {!showLoading && data && data.total > 0 && (
                         <div className="res_header">
                             <p className="res_count">{data.total} recipes</p>
                         </div>
                     )}
 
                     {showLoading && (
-                        <div className="loading">
-                            <div className="loading_spinner">
-                                <i className="fa-solid fa-fire-burner"/>
-                            </div>
-                            <p className="loading_text">Cooking up some recipes for you!</p>
-                        </div>
+                        <LoadingAnimation
+                            key={ingredients + page}
+                            text="Cooking up some recipes for you!"
+                        />
                     )}
 
                     {isError && (
@@ -97,13 +89,13 @@ export default function IngredientSearchPage() {
                         </div>
                     )}
 
-                    {!isLoading && data?.total === 0 && (
+                    {!showLoading && data?.total === 0 && (
                         <div className="empty">
                             <p className="empty_title">Sorry, no recipes found!</p>
                         </div>
                     )}
 
-                    {!isLoading && data && data.results?.length > 0 && (
+                    {!showLoading && data && data.results?.length > 0 && (
                         <>
                             <div className="res_grid">
                                 {data.results.map((recipe: any) => (<RecipeCard
@@ -130,7 +122,7 @@ export default function IngredientSearchPage() {
                                         onClick={() => {
                                             const params = new URLSearchParams(searchParams.toString())
                                             params.set("page", String(page - 1))
-                                            router.push(`/search?${params.toString()}`)
+                                            router.push(`/search/by-ingredients?${params.toString()}`)
                                             window.scrollTo({top: 0, behavior: "smooth"})
                                         }}
                                         className="page_btn"
@@ -143,7 +135,7 @@ export default function IngredientSearchPage() {
                                         onClick={() => {
                                             const params = new URLSearchParams(searchParams.toString())
                                             params.set("page", String(page + 1))
-                                            router.push(`/search?${params.toString()}`)
+                                            router.push(`/search/by-ingredients?${params.toString()}`)
                                             window.scrollTo({top: 0, behavior: "smooth"})
                                         }}
                                         className="page_btn"

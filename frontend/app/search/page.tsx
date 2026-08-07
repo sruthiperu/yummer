@@ -1,7 +1,7 @@
 "use client"
 
 import {useSearchParams, useRouter} from "next/navigation"
-import {useState, useEffect} from "react"
+import {useState} from "react"
 import {useSearch} from "@/lib/useSearch"
 
 import RecipeCard from "../recipe_card"
@@ -24,11 +24,13 @@ export default function SearchPage() {
     const [maxCalories, setMaxCalories] = useState<number | undefined>()
     
     const page = Number(searchParams.get("page") || 1)
-    const {data, isLoading, isError} = useSearch(query, {
+    const {data, isFetching, isError} = useSearch(query, {
         tags: tagsParam, 
         max_time: maxTime, 
         max_calories: maxCalories
     }, page)
+
+    const showLoading = isFetching && !data
 
     const handleTagsChange = (newTags: string[]) => {
         const params = new URLSearchParams()
@@ -39,15 +41,6 @@ export default function SearchPage() {
         params.set("page", "1")
         router.push(`/search?${params.toString()}`)
     }
-
-    const [showLoading, setShowLoading] = useState(false)
-    useEffect(() => {
-        if (isLoading) {
-            const timer = setTimeout(() => setShowLoading(true), 300)
-            return () => clearTimeout(timer)
-        }
-        setShowLoading(false)
-    }, [isLoading])
 
     return (
         <main className="search_page">
@@ -68,7 +61,7 @@ export default function SearchPage() {
                 {/* right: recipe grid */}
                 <div className="search_content">
                     {/* when there are results */}
-                    {!isLoading && data && data.total > 0 && (
+                    {!showLoading && data && data.total > 0 && (
                         <div className="res_header">
                             <p className="res_count">{data.total} recipes</p>
                         </div>
@@ -83,13 +76,13 @@ export default function SearchPage() {
                     )}
 
                     {/* when there aren't any results */}
-                    {!isLoading && data?.total === 0 && (
+                    {!showLoading && data?.total === 0 && (
                         <div className="empty">
                             <p className="empty_title">Sorry, no recipes found!</p>
                         </div>
                     )}
 
-                    {!isLoading && data && data.results?.length > 0 && (
+                    {!showLoading && data && data.results?.length > 0 && (
                         <>
                             <div className="res_grid">
                                 {data.results.map((recipe: any) => (<RecipeCard

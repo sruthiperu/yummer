@@ -1,5 +1,5 @@
 .styles {
-  max-width: 850px;
+  max-width: 900px;
   margin: 0 auto;
   padding: 32px 24px 64px;
 }
@@ -115,7 +115,6 @@
   font-weight: 600;
   color: rgb(110, 110, 110);
   letter-spacing: 0.02em;
-  /* line-height: 1.2; */
 }
 
 /* image */
@@ -123,7 +122,6 @@
   width: 90%;
   max-height: 400px;
   object-fit: cover;
-  border-radius: 14px;
   margin: 16px auto;
   display: block;
   border-radius: 16px;
@@ -160,11 +158,11 @@
 
 /* AI chatbox */
 .chatbox {
+  width: 90%;
   position: relative;
-  margin: 28px auto;
+  margin: 0 auto;
   padding: 24px 22px 24px 22px;
   border-radius: 16px;
-  max-width: 750px;
   justify-content: center;
 
   border: 2px solid transparent;
@@ -181,6 +179,9 @@
   box-shadow:
     0 0 8px rgba(80, 180, 255, 0.12),
     0 0 20px rgba(130, 90, 255, 0.08);
+  
+  position: relative;
+  z-index: 1;
 }
 @property --angle {
   syntax: "<angle>";
@@ -200,10 +201,6 @@
     radial-gradient(circle at top right, rgba(30, 180, 225, 0.12), transparent 45%),
     radial-gradient(circle at bottom left, rgba(120, 90, 255, 0.08), transparent 40%);
   pointer-events: none;
-}
-.chatbox {
-  position: relative;
-  z-index: 1;
 }
 .chatbox_header {
   display: flex;
@@ -337,7 +334,7 @@
 /* section titles */
 .nutrition_title, .ingredients_title, .directions_title {
   margin: 48px 0 14px;
-  font-size: 21px;
+  font-size: 22px;
   font-weight: 600;
   color: rgb(45, 45, 45);
 }
@@ -664,7 +661,7 @@
   background: rgba(145, 108, 72, 0.19);
 }
 .ingredient_tile--grains:hover {
-  border-color: rgba(145, 108, 722, 0.35);
+  border-color: rgba(145, 108, 72, 0.35);
 }
 .ingredient_tile--other {
   background: rgba(156, 163, 175, 0.10);
@@ -696,7 +693,7 @@
 }
 .ingredient_qty--grains {
   background: rgba(166, 124, 82, 0.18);
-  color: rgb(145, 108, 724);
+  color: rgb(145, 108, 72);
 }
 .ingredient_qty--other {
   background: rgba(156, 163, 175, 0.2);

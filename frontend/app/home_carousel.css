@@ -1,0 +1,135 @@
+.home_carousel {
+  width: 100%;
+  margin: 0 0 36px;
+}
+
+.home_carousel_title {
+  margin: 0 0 14px;
+  padding: 0 20px;
+  font-family: "Outfit", system-ui, sans-serif;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgb(45, 55, 65);
+}
+
+.home_carousel_viewport {
+  overflow: hidden;
+  width: 100%;
+  mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    #000 4%,
+    #000 96%,
+    transparent 100%
+  );
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    #000 4%,
+    #000 96%,
+    transparent 100%
+  );
+}
+
+.home_carousel_track {
+  display: flex;
+  gap: 16px;
+  width: max-content;
+  padding: 6px 20px 10px;
+  animation: home-marquee-left var(--carousel-duration, 55s) linear infinite;
+  will-change: transform;
+}
+
+.home_carousel_viewport--right .home_carousel_track {
+  animation-name: home-marquee-right;
+}
+
+/* pause while hovering */
+.home_carousel_viewport:hover .home_carousel_track {
+  animation-play-state: paused;
+}
+
+.home_carousel_slide {
+  flex: 0 0 360px;
+  width: 360px;
+  height: 200px;
+}
+
+.home_carousel_slide .card {
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.92);
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(30, 180, 225, 0.04)
+}
+
+@keyframes home-marquee-left {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes home-marquee-right {
+  from {
+    transform: translateX(-50%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.home_carousel_empty {
+  margin: 0;
+  padding: 24px 20px;
+  color: rgb(120, 130, 140);
+  font-size: 14px;
+}
+
+.home_carousel_skeleton {
+  display: flex;
+  gap: 16px;
+  padding: 6px 20px 10px;
+  overflow: hidden;
+}
+
+.home_carousel_skel_card {
+  flex: 0 0 360px;
+  height: 200px;
+  border-radius: 16px;
+  background: linear-gradient(
+    90deg,
+    rgba(30, 180, 225, 0.06) 0%,
+    rgba(30, 180, 225, 0.14) 50%,
+    rgba(30, 180, 225, 0.06) 100%
+  );
+  background-size: 200% 100%;
+  animation: home-skel-shimmer 1.4s ease-in-out infinite;
+}
+
+@keyframes home-skel-shimmer {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: -100% 0;
+  }
+}
+
+@media (max-width: 640px) {
+  .home_carousel_slide,
+  .home_carousel_skel_card {
+    flex-basis: 300px;
+    width: 300px;
+    height: 210px;
+  }
+
+  .home_carousel_title {
+    padding: 0 16px;
+    font-size: 13px;
+  }
+}

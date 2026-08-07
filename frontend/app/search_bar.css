@@ -1,44 +1,59 @@
 .search_form {
-    width: 100%;
-    margin-bottom: 24px;
+  width: 100%;
+  margin-bottom: 24px;
 }
+
 .search_row {
-    display: flex;
-    align-items: center;
-    width: 100%;
+  display: flex;
+  align-items: center;
+  width: 100%;
 }
+
 .search_input_wrapper {
-    position: relative;
-    display: flex;
-    align-items: center;
-    flex: 1;
-    border: 1px solid rgb(190, 190, 190);
-    border-radius: 40px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-height: 52px;
+  border: 1.5px solid rgba(30, 180, 225, 0.28);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow:
+    0 8px 24px rgba(8, 100, 140, 0.07),
+    0 1px 0 rgba(255, 255, 255, 0.9) inset;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
+
 .search_icon {
-    position: absolute;
-    left: 18px;
-    color: rgb(40, 40, 40);
-    font-size: 18px;
-    pointer-events: none;
-    z-index: 1;
+  position: absolute;
+  left: 18px;
+  color: rgb(30, 180, 225);
+  font-size: 16px;
+  pointer-events: none;
+  z-index: 1;
 }
 
 .search_input {
-    padding: 12px 18px 12px 42px;
-    width: 100%;
-    height: auto;
-    color: rgb(40, 40, 40);
-    border: none;
-    outline: none;
-    background: transparent;
-    font-size: 16px;
-    border-radius: 40px;
+  padding: 14px 18px 14px 48px;
+  width: 100%;
+  height: auto;
+  color: rgb(40, 48, 55);
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: "Outfit", system-ui, sans-serif;
+  font-size: 16px;
+  border-radius: 16px;
 }
+
 .search_input::placeholder {
-    color: rgb(100, 100, 100);
-    opacity: 1;
+  color: rgb(130, 140, 150);
+  opacity: 1;
 }
+
 .search_input_wrapper:focus-within {
-    border-color: rgb(30, 180, 225);
+  border-color: rgb(30, 180, 225);
+  box-shadow:
+    0 0 0 3px rgba(30, 180, 225, 0.15),
+    0 10px 28px rgba(8, 100, 140, 0.1);
 }
