@@ -14,7 +14,7 @@ import type {Ingredient, Instruction, Recipe} from "@/types/recipe"
 import type {IngredientSection} from "@/lib/ingredientSections"
 import type {DirectionSection} from "@/lib/directionSections"
 import StarRating from "@/lib/StarRating"
-import LoadingAnimation from "@/lib/loadingAnimation";
+import CleanProgressLoading from "@/lib/cleanProgressLoading";
 
 
 function AiEditMarker() {
@@ -124,8 +124,11 @@ function IngredientTile({
     showDietary?: boolean;
 }) {
     const qtyParts = [ing.quantity, ing.unit].filter(Boolean);
-    const qty = ing.container_size ? `${qtyParts.join(" ")} (${ing.container_size})` : qtyParts.join(" ");
-    const name = (ing.name && ing.name.trim()) || "Unknown ingredient";
+    const qtyRaw = ing.container_size
+        ? `${qtyParts.join(" ")} (${ing.container_size})`
+        : qtyParts.join(" ");
+    const qty = qtyRaw.toLowerCase();
+    const name = ((ing.name && ing.name.trim()) || "Unknown ingredient").toLowerCase();
     const typeClass = showFoodTypes ? ingredientTypeClass(ing.food_type) : "neutral";
     const allergens = displayAllergens(ing.allergens);
     const allergenTooltip = allergenContainsText(allergens);
@@ -190,17 +193,6 @@ export default function RecipePage() {
 
     useEffect(() => {
         if (shouldClean && recipe && !modifiedRecipe) {
-            const cached = sessionStorage.getItem(`cleaned-${id}`);
-            if (cached) {
-                try {
-                    const cleaned = JSON.parse(cached) as Recipe;
-                    setModifiedRecipe(cleaned);
-                    setBaselineRecipe(cleaned);
-                    setWasCleaned(true);
-                    sessionStorage.removeItem(`cleaned-${id}`);
-                    return;
-                } catch {}
-            }
             handleClean();
         }
     }, [shouldClean, recipe, modifiedRecipe]);
@@ -208,7 +200,7 @@ export default function RecipePage() {
     if (cleanLoading) {
         return (
             <div className="ai_loading_overlay">
-                <LoadingAnimation text="Loading recipe…"/>
+                <CleanProgressLoading />
             </div>
         );
     }
@@ -386,7 +378,7 @@ export default function RecipePage() {
                 <div className="chatbox_header">
                     <div className="chatbox_header_text">
                         <h2 className="chatbox_title">Modify this recipe</h2>
-                        <p className="chatbox_subtitle">Make it keto, gluten-free, higher in protein, adjust servings, or anything else.</p>
+                        <p className="chatbox_subtitle">Make it gluten-free, higher in protein, adjust servings, lower calories, or anything else.</p>
                     </div>
                 </div>
 
@@ -408,14 +400,19 @@ export default function RecipePage() {
                 {aiError && <p className="error_msg">{aiError}</p>}
 
                 {showEditMarks && (
-                    <div className="success_msg">
-                        <span className="success_text">
-                            <i className="fa-solid fa-circle-check"/> Recipe modified
-                        </span>
-                        <button onClick={handleRestore} className="restore_btn">
-                            {wasCleaned ? "Restore cleaned" : "Restore original"}
-                        </button>
-                    </div>
+                    <>
+                        <div className="success_msg">
+                            <span className="success_text">
+                                <i className="fa-solid fa-circle-check"/> Recipe modified
+                            </span>
+                            <button onClick={handleRestore} className="restore_btn">
+                                {"Restore original"}
+                            </button>
+                        </div>
+                        <p className="ai_disclaimer">
+                            <i className="fa-solid fa-triangle-exclamation"></i> This recipe was modified by AI. Recipes may occasionally be misleading; please review carefully before cooking.
+                        </p>
+                    </>
                 )}
             </section>
 

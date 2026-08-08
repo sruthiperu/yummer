@@ -70,6 +70,67 @@ html, body {
   margin-bottom: 64px;
 }
 
+
+/* AI customization */
+.home_ai {
+  width: 100%;
+  margin: 0;
+  padding: 64px 0 72px;
+  background:
+      radial-gradient(ellipse 60% 70% at 80% 40%, rgba(30, 180, 225, 0.09), transparent 60%),
+      radial-gradient(ellipse 50% 50% at 10% 80%, rgba(8, 146, 192, 0.05), transparent 55%);
+}
+
+.home_ai_inner {
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.home_ai_heading {
+  text-align: center;
+  margin: 100px auto 28px;
+  padding: 0 24px;
+  font-size: clamp(26px, 4vw, 34px);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: rgb(75, 75, 75);
+}
+
+
+.home_ai_row {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr;
+  gap: 40px 56px;
+  align-items: center;
+}
+
+.home_ai_copy {
+  margin: 0;
+  font-size: clamp(22px, 3.2vw, 32px);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.35;
+  color: rgb(45, 55, 65);
+}
+
+.home_ai_accent {
+  font-weight: 700;
+  background: linear-gradient(90deg, rgb(30, 180, 225), rgb(8, 146, 192));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.home_ai_video {
+  border-radius: 18px;
+}
+
+.home_ai_video .home_video_play {
+  font-size: 48px;
+}
+
 /* solid cursor while typing */
 .cursor-solid {
   display: inline-block;

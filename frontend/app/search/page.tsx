@@ -95,6 +95,7 @@ export default function SearchPage() {
                                     rating={recipe.rating}
                                     num_ratings={recipe.num_ratings}
                                     image={recipe.image}
+                                    link={recipe.link}
                                     match_score={recipe.match_score}
                                 />))}
                             </div>

@@ -16,6 +16,7 @@ type RecipeCardProps = {
     rating?: number | null
     num_ratings?: number | null
     image?: string | null
+    link?: string | null
     match_score?: number
     user_match_pct?: number
     missing_ings?: string[]
@@ -33,7 +34,11 @@ function getProgressColor(pct: number): string {
     return "progress_low"
 }
 
-export default function RecipeCard({id, name, total_time, nutrition, tags, rating, num_ratings, image, match_score, user_match_pct, missing_ings = [], recipe_ings = [], user_ings = []}:
+function normalizeSourceUrl(link: string): string {
+    return link.startsWith("http") ? link : `https://${link}`
+}
+
+export default function RecipeCard({id, name, total_time, nutrition, tags, rating, num_ratings, image, link, match_score, user_match_pct, missing_ings = [], recipe_ings = [], user_ings = []}:
 RecipeCardProps) {
 
     const router = useRouter()
@@ -44,8 +49,16 @@ RecipeCardProps) {
     const matched = Math.round(((user_match_pct ?? 0) / 100) * total_user_ings)
     const pct = user_match_pct ?? 0
 
+    function handleCardClick() {
+        if (link) {
+            window.open(normalizeSourceUrl(link), "_blank", "noopener,noreferrer")
+            return
+        }
+        router.push(`/recipes/${id}`)
+    }
+
     return (
-        <div onClick={() => router.push(`/recipes/${id}`)} className="card">
+        <div onClick={handleCardClick} className="card">
             {/* image */}
             {image ? (<img src={image} alt={name} className="card_image" />) : (
                 <div className="card_image_placeholder">

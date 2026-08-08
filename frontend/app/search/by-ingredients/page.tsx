@@ -108,6 +108,7 @@ export default function IngredientSearchPage() {
                                     rating={recipe.rating}
                                     num_ratings={recipe.num_ratings}
                                     image={recipe.image}
+                                    link={recipe.link}
                                     user_match_pct={recipe.user_match_pct}
                                     missing_ings={recipe.missing_ingredients}
                                     recipe_ings={recipe.ingredients}

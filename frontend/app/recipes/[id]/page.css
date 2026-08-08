@@ -221,7 +221,7 @@
 .chatbox_subtitle {
   margin: 0;
   color: rgb(95, 95, 95);
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1.45;
   margin-bottom: 8px;
 }
@@ -304,7 +304,7 @@
   align-items: center;
   margin-top: 14px;
   gap: 12px;
-  font-size: 13px;
+  font-size: 13.5px;
 }
 .success_text {
   display: inline-flex;
@@ -316,7 +316,18 @@
 .error_msg {
   color: rgb(180, 40, 40);
   margin-top: 10px;
-  font-size: 13px;
+  font-size: 13.5px;
+}
+
+.ai_disclaimer {
+  margin: 10px 0 0;
+  color: rgb(95, 95, 95);
+  font-size: 13.5px;
+  line-height: 1.45;
+}
+.fa-triangle-exclamation {
+  color: rgb(217, 14, 14);
+  font-size: 14px;
 }
 
 .restore_btn {
@@ -325,10 +336,10 @@
   color: rgb(90, 90, 90);
   text-decoration: underline;
   cursor: pointer;
-  font-size: 13px;
+  font-size: 13.6px;
 }
 .restore_btn:hover {
-  color: rgb(30, 180, 225);
+  color: rgba(0, 100, 150, 0.65);
 }
 
 /* section titles */
@@ -716,10 +727,11 @@
   border-radius: 8px;
   background: rgba(30, 180, 225, 0.1);
   color: rgb(8, 146, 192);
-  font-size: 14px;
+  font-size: 14.5px;
   font-weight: 700;
   text-align: center;
   line-height: 1.2;
+  letter-spacing: 0.03em;
 }
 .ingredient_qty--empty {
   position: relative;
@@ -756,10 +768,11 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 15px;
+  font-size: 15.25px;
   line-height: 1.4;
   color: rgb(50, 50, 50);
   font-weight: 500;
+  letter-spacing: 0.02em;
 }
 
 .ingredient_tile_trailing {
@@ -941,12 +954,13 @@
   color: rgb(8, 146, 192);
   font-size: 14px;
   font-weight: 700;
+  letter-spacing: 0.02em;
 }
 .direction_text {
   flex: 1;
   min-width: 0;
   margin: 4px 0 0;
-  font-size: 15px;
+  font-size: 15.5px;
   line-height: 1.55;
   color: rgb(50, 50, 50);
 }
