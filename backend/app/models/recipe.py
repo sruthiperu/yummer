@@ -26,7 +26,8 @@ class Recipe(Base):
     num_ratings = Column(Integer, nullable=True)
     date = Column(DateTime, nullable=True)
     image = Column(String, nullable=True)                   # extract from recipe_link source, or online search
-    link = Column(String, nullable=True)             
+    link = Column(String, nullable=True)
+    cleaned_recipe = Column(JSONB, nullable=True)           # cached AI clean overlay: name/ingredients/directions
 
     search_vector = Column(TSVECTOR, nullable=True)
 

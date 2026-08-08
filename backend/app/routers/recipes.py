@@ -345,7 +345,7 @@ def _call_openai(prompt: str, max_tokens: int = 2000, temperature: float = 0.3) 
 
     client = openai.OpenAI(api_key=settings.openai_api_key)
     response = client.chat.completions.create(
-        model="gpt-4o-mini",
+        model="gpt-4.1-mini",
         messages=[{"role": "user", "content": prompt}],
         temperature=temperature,
         max_tokens=max_tokens,
@@ -360,12 +360,12 @@ def _call_openai(prompt: str, max_tokens: int = 2000, temperature: float = 0.3) 
         content = content.strip()
 
     return json.loads(content)
-
+    
 
 def _classify_modify_request(message: str, servings) -> dict:
     """LLM gate: {action: modify} or {action: clarify, message: ...}."""
     prompt = build_clarify_modify_prompt(message, servings=servings)
-    result = _call_openai(prompt, max_tokens=200, temperature=0.2)
+    result = _call_openai(prompt, max_tokens=200)
     if not isinstance(result, dict):
         return {"action": "modify"}
     action = (result.get("action") or "").strip().lower()
@@ -528,12 +528,22 @@ def clean_recipe(recipe_id: int, db: Session = Depends(get_db)):
     if not recipe:
         raise HTTPException(status_code=404, detail="recipe not found")
 
+    if recipe.cleaned_recipe:
+        return _attach_metadata(recipe.cleaned_recipe, recipe, is_modify=False)
+
     ings_text, dirs_text = _build_text(recipe, db)
     prompt = build_clean_prompt(recipe.name, ings_text, dirs_text)
 
     try:
         result = _call_openai(prompt)
-        return _attach_metadata(result, recipe, is_modify=False)
+        response = _attach_metadata(result, recipe, is_modify=False)
+        recipe.cleaned_recipe = {
+            "name": response["name"],
+            "ingredients": response["ingredients"],
+            "directions": response["directions"],
+        }
+        db.commit()
+        return response
     except json.JSONDecodeError as e:
         raise HTTPException(status_code=500, detail=f"Failed to parse AI response: {str(e)}")
     except openai.OpenAIError as e:
