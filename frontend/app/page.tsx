@@ -196,21 +196,39 @@ export default function HomePage() {
 
       <section className="home_ai">
         <div className="home_ai_inner">
-          <h2 className="home_section_heading home_ai_heading">And the best part?</h2>
-          <div className="home_ai_row">
-            <p className="home_ai_copy">
-              Customize recipes using your own{" "}
-              <span className="home_ai_accent">AI cooking assistant</span>
-            </p>
-            <div className="home_ai_video" aria-label="App demo video placeholder">
-              <div className="home_video_placeholder_content">
-                <i className="fa-regular fa-circle-play home_video_play" aria-hidden="true" />
-                <span className="home_ai_video_label">Video coming soon</span>
-              </div>
-            </div>
+          <h2 className="home_ai_heading">And the best part?</h2>
+          <p className="home_ai_copy">
+            Customize recipes using your own{" "}
+            <span className="home_ai_accent">AI cooking assistant</span>
+          </p>
+          <div className="home_ai_video" aria-label="AI recipe customization demo">
+            <video
+              className="home_customize_demo"
+              src="/demos/yummers_customize_demo.mp4"
+              autoPlay
+              muted
+              loop
+              playsInline
+            />
           </div>
         </div>
       </section>
+
+      <footer className="home_footer">
+        <p className="home_footer_text">
+          Want to report a bug or suggest a feature? Contact <a href="mailto:sruthiperumalla1107@gmail.com">me</a>!{" "}
+          <a
+            className="home_footer_github"
+            href="https://github.com/sruthiperu/yummer"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Yummer on GitHub"
+          >
+            <i className="fa-brands fa-github" aria-hidden="true" />
+          </a>
+        </p>
+      </footer>
     </div>
   )
 }
+

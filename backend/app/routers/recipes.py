@@ -345,7 +345,7 @@ def _call_openai(prompt: str, max_tokens: int = 2000, temperature: float = 0.3) 
 
     client = openai.OpenAI(api_key=settings.openai_api_key)
     response = client.chat.completions.create(
-        model="gpt-4.1-mini",
+        model="gpt-4o-mini",
         messages=[{"role": "user", "content": prompt}],
         temperature=temperature,
         max_tokens=max_tokens,
