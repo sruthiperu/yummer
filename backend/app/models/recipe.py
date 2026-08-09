@@ -1,5 +1,5 @@
 from app.database import Base
-from sqlalchemy import Column, String, Integer, Numeric, Boolean, ARRAY, DateTime, ForeignKey
+from sqlalchemy import Column, String, Integer, Numeric, Boolean, ARRAY, DateTime, ForeignKey, UniqueConstraint
 from sqlalchemy.dialects.postgresql import JSONB, TSVECTOR
 
 
@@ -66,11 +66,15 @@ class RecipeIngredient(Base):
 # user table
 class User(Base):
     __tablename__ = "users"
+    __table_args__ = (
+        UniqueConstraint("auth_provider", "provider_user_id", name="uq_users_auth_provider_provider_user_id"),
+    )
 
     id = Column(Integer, primary_key=True)
 
-    email = Column(String, nullable=False, unique=True)  
-    google_id = Column(String, nullable=False, unique=True)  
+    email = Column(String, nullable=False, unique=True)
+    auth_provider = Column(String, nullable=False)          # "google"
+    provider_user_id = Column(String, nullable=False)
     name = Column(String, nullable=False)
     dietary_restrictions = Column(JSONB, nullable=True)
     allergens = Column(JSONB, nullable=True)
