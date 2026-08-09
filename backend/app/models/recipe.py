@@ -83,7 +83,9 @@ class User(Base):
 
 class DailyTokenUsage(Base):
     __tablename__ = "daily_token_usage"
-    __table_args__ = (UniqueConstraint("subject_key", "usage_date", name="uq_daily_token_usage_subject_date"))
+    __table_args__ = (
+        UniqueConstraint("subject_key", "usage_date", name="uq_daily_token_usage_subject_date"),
+    )
 
     id = Column(Integer, primary_key=True)
     subject_key = Column(String, nullable=False, index=True)
