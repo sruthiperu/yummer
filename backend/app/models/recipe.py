@@ -1,5 +1,5 @@
 from app.database import Base
-from sqlalchemy import Column, String, Integer, Numeric, Boolean, ARRAY, DateTime, ForeignKey, UniqueConstraint
+from sqlalchemy import Column, String, Integer, Numeric, Boolean, ARRAY, DateTime, ForeignKey, UniqueConstraint, Date
 from sqlalchemy.dialects.postgresql import JSONB, TSVECTOR
 
 
@@ -79,3 +79,13 @@ class User(Base):
     dietary_restrictions = Column(JSONB, nullable=True)
     allergens = Column(JSONB, nullable=True)
     date_created = Column(DateTime, nullable=True)
+
+
+class DailyTokenUsage(Base):
+    __tablename__ = "daily_token_usage"
+    __table_args__ = (UniqueConstraint("subject_key", "usage_date", name="uq_daily_token_usage_subject_date"))
+
+    id = Column(Integer, primary_key=True)
+    subject_key = Column(String, nullable=False, index=True)
+    usage_date = Column(Date, nullable=False)
+    tokens_used = Column(Integer, nullable=False, default=0)

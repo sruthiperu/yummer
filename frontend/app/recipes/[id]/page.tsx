@@ -185,6 +185,7 @@ export default function RecipePage() {
     const [wasCleaned, setWasCleaned] = useState(false)
     const [modifyLoading, setModifyLoading] = useState(false)
     const [cleanLoading, setCleanLoading] = useState(false)
+    const [cleanError, setCleanError] = useState("")
     const [aiError, setAiError] = useState("")
     const [showFoodTypes, setShowFoodTypes] = useState(false)
     const [showDietary, setShowDietary] = useState(false)
@@ -192,10 +193,10 @@ export default function RecipePage() {
     const shouldClean = searchParams.get("cleaned") === "1";
 
     useEffect(() => {
-        if (shouldClean && recipe && !modifiedRecipe) {
+        if (shouldClean && recipe && !modifiedRecipe && !cleanError) {
             handleClean();
         }
-    }, [shouldClean, recipe, modifiedRecipe]);
+    }, [shouldClean, recipe, modifiedRecipe, cleanError]);
 
     if (cleanLoading) {
         return (
@@ -206,6 +207,13 @@ export default function RecipePage() {
     }
     if (isLoading) return <div>Loading...</div>
     if (isError || !recipe) return <div>Recipe not found</div>
+    if (cleanError && !wasCleaned && !modifiedRecipe) {
+        return (
+            <div className="ai_loading_overlay">
+                <p className="clean_error_msg">{cleanError}</p>
+            </div>
+        );
+    }
 
     const displayRecipe = modifiedRecipe || recipe;
 
@@ -255,6 +263,7 @@ export default function RecipePage() {
         try {
             const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/recipes/${id}/modify`, {
                 method: "POST",
+                credentials: "include",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     message,
@@ -269,11 +278,14 @@ export default function RecipePage() {
                 }),
             })
 
+            const data = await response.json().catch(() => ({}))
             if (!response.ok) {
-                throw new Error("handleModify() failed")
+                const detail = typeof data?.detail === "string" ? data.detail : null
+                setAiError(detail || (response.status === 429
+                    ? "Sorry! You've reached your token limit for the day. Check back in tomorrow!"
+                    : "AI Error"))
+                return
             }
-
-            const data = await response.json()
 
             if (data.conflict) {
                 setAiError(data.conflict)
@@ -289,18 +301,27 @@ export default function RecipePage() {
 
     async function handleClean() {
         setCleanLoading(true);
+        setCleanError("");
         setAiError("");
         try {
             const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/recipes/${id}/clean`, {
                 method: "POST",
+                credentials: "include",
             });
-            if (!response.ok) throw new Error("Clean failed");
-            const data = await response.json();
+            const data = await response.json().catch(() => ({}));
+            if (!response.ok) {
+                const detail = typeof data?.detail === "string" ? data.detail : null;
+                setCleanError(detail || (response.status === 429
+                    ? "Sorry! You've reached your token limit for the day. Check back in tomorrow!"
+                    : "AI Error"));
+                return;
+            }
+            setCleanError("");
             setModifiedRecipe(data);
             setBaselineRecipe(data);
             setWasCleaned(true);
         } catch (err) {
-            setAiError("AI Error");
+            setCleanError("AI Error");
         } finally {
             setCleanLoading(false);
         }

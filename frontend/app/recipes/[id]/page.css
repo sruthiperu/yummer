@@ -3,6 +3,24 @@
   margin: 0 auto;
   padding: 32px 24px 64px;
 }
+
+.ai_loading_overlay {
+  min-height: 60vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+}
+
+.clean_error_msg {
+  margin: 0;
+  max-width: 28em;
+  text-align: center;
+  font-size: 17px;
+  font-weight: 500;
+  line-height: 1.45;
+  color: rgb(180, 40, 40);
+}
   
 .recipe_loading {
   text-align: center;

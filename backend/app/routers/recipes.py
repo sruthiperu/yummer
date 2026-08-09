@@ -4,13 +4,25 @@ import json
 import re
 import openai
 from pydantic import BaseModel
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi.encoders import jsonable_encoder
+from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
+from app.auth import get_optional_user_id
 from app.config import settings
 from app.database import get_db
 from app.models.recipe import Recipe, RecipeIngredient, Ingredient
 from app.schemas.recipe import RecipeResponse
+from app.token_limits import (
+    DAILY_TOKEN_LIMIT,
+    LIMIT_MESSAGE,
+    add_tokens,
+    attach_anon_cookie,
+    ensure_under_limit,
+    get_tokens_used,
+    resolve_subject,
+)
 from scripts.format_quantities import format_quantity, abbreviate_unit, scale_quantity
 from scripts.parse_recipe import get_display_name
 from scripts.prompts import build_clean_prompt, build_modify_prompt, build_clarify_modify_prompt
@@ -340,8 +352,8 @@ def _build_text_from_snapshot(snapshot: dict):
     return name, "\n".join(ings_lines), "\n".join(dirs_lines)
 
 
-def _call_openai(prompt: str, max_tokens: int = 2000, temperature: float = 0.3) -> dict:
-    """send prompt to OpenAI and return parsed JSON dict"""
+def _call_openai(prompt: str, max_tokens: int = 2000, temperature: float = 0.3) -> tuple[dict, int]:
+    """Send prompt to OpenAI and return (parsed JSON dict, total_tokens)."""
 
     client = openai.OpenAI(api_key=settings.openai_api_key)
     response = client.chat.completions.create(
@@ -359,21 +371,31 @@ def _call_openai(prompt: str, max_tokens: int = 2000, temperature: float = 0.3) 
             content = content[4:]
         content = content.strip()
 
-    return json.loads(content)
-    
+    total_tokens = 0
+    if response.usage is not None:
+        total_tokens = int(response.usage.total_tokens or 0)
 
-def _classify_modify_request(message: str, servings) -> dict:
+    return json.loads(content), total_tokens
+
+
+def _classify_modify_request(message: str, servings) -> tuple[dict, int]:
     """LLM gate: {action: modify} or {action: clarify, message: ...}."""
     prompt = build_clarify_modify_prompt(message, servings=servings)
-    result = _call_openai(prompt, max_tokens=200)
+    result, tokens = _call_openai(prompt, max_tokens=200)
     if not isinstance(result, dict):
-        return {"action": "modify"}
+        return {"action": "modify"}, tokens
     action = (result.get("action") or "").strip().lower()
     if action == "clarify":
         msg = (result.get("message") or "").strip()
         if msg:
-            return {"action": "clarify", "message": msg}
-    return {"action": "modify"}
+            return {"action": "clarify", "message": msg}, tokens
+    return {"action": "modify"}, tokens
+
+
+def _ai_json_response(payload: dict, anon_id: str | None = None) -> JSONResponse:
+    response = JSONResponse(content=jsonable_encoder(payload))
+    attach_anon_cookie(response, anon_id)
+    return response
 
 
 def _sanitize_directions(directions) -> list:
@@ -478,7 +500,7 @@ def _attach_metadata(
             total_time = base_time
             total_time_modified = False
 
-        # Servings-only requests keep per-serving nutrition unchanged
+        # servings-only requests keep per-serving nutrition unchanged
         if _wants_servings_change(message) and not re.search(
             r"\b(vegan|vegetarian|keto|gluten[\s-]?free|substitute|replace|swap|less\s+cal|lower\s+cal|healthier)\b",
             message or "",
@@ -523,19 +545,31 @@ def _attach_metadata(
 
 
 @router.post("/{recipe_id}/clean")
-def clean_recipe(recipe_id: int, db: Session = Depends(get_db)):
+def clean_recipe(
+    recipe_id: int,
+    request: Request,
+    db: Session = Depends(get_db),
+    user_id: int | None = Depends(get_optional_user_id),
+):
     recipe = db.query(Recipe).filter(Recipe.id == recipe_id).first()
     if not recipe:
         raise HTTPException(status_code=404, detail="recipe not found")
 
+    subject_key, anon_id = resolve_subject(request, user_id)
+
     if recipe.cleaned_recipe:
-        return _attach_metadata(recipe.cleaned_recipe, recipe, is_modify=False)
+        return _ai_json_response(
+            _attach_metadata(recipe.cleaned_recipe, recipe, is_modify=False),
+            anon_id,
+        )
+
+    ensure_under_limit(db, subject_key)
 
     ings_text, dirs_text = _build_text(recipe, db)
     prompt = build_clean_prompt(recipe.name, ings_text, dirs_text)
 
     try:
-        result = _call_openai(prompt)
+        result, tokens = _call_openai(prompt)
         response = _attach_metadata(result, recipe, is_modify=False)
         recipe.cleaned_recipe = {
             "name": response["name"],
@@ -543,7 +577,10 @@ def clean_recipe(recipe_id: int, db: Session = Depends(get_db)):
             "directions": response["directions"],
         }
         db.commit()
-        return response
+        add_tokens(db, subject_key, tokens)
+        return _ai_json_response(response, anon_id)
+    except HTTPException:
+        raise
     except json.JSONDecodeError as e:
         raise HTTPException(status_code=500, detail=f"Failed to parse AI response: {str(e)}")
     except openai.OpenAIError as e:
@@ -553,20 +590,29 @@ def clean_recipe(recipe_id: int, db: Session = Depends(get_db)):
 
 
 @router.post("/{recipe_id}/modify")
-def modify_recipe(recipe_id: int, request: ModifyRequest, db: Session = Depends(get_db)):
+def modify_recipe(
+    recipe_id: int,
+    body: ModifyRequest,
+    request: Request,
+    db: Session = Depends(get_db),
+    user_id: int | None = Depends(get_optional_user_id),
+):
     recipe = db.query(Recipe).filter(Recipe.id == recipe_id).first()
     if not recipe:
         raise HTTPException(status_code=404, detail="recipe not found")
 
-    if not request.message.strip():
+    if not body.message.strip():
         raise HTTPException(
             status_code=400,
             detail="Modification message cannot be empty. Use /clean for cleaning.",
         )
 
-    snapshot = request.recipe or {}
-    if request.recipe:
-        name, ings_text, dirs_text = _build_text_from_snapshot(request.recipe)
+    subject_key, anon_id = resolve_subject(request, user_id)
+    ensure_under_limit(db, subject_key)
+
+    snapshot = body.recipe or {}
+    if body.recipe:
+        name, ings_text, dirs_text = _build_text_from_snapshot(body.recipe)
         if not name:
             name = recipe.name
     else:
@@ -581,35 +627,51 @@ def modify_recipe(recipe_id: int, request: ModifyRequest, db: Session = Depends(
         "total_time": total_time,
         "servings": servings,
         "nutrition": nutrition,
-        "ingredients": snapshot.get("ingredients") if request.recipe else None,
+        "ingredients": snapshot.get("ingredients") if body.recipe else None,
     }
 
     try:
-        decision = _classify_modify_request(request.message, servings)
-        if decision.get("action") == "clarify":
-            return {"conflict": decision["message"]}
+        tokens_used = 0
+        decision, classify_tokens = _classify_modify_request(body.message, servings)
+        tokens_used += classify_tokens
 
-        # Safety net: ambiguous "make it for N" must not silently no-op
-        if _ambiguous_make_for_n(request.message):
-            return {"conflict": _MSG_MORE_SPECIFIC}
+        if decision.get("action") == "clarify":
+            add_tokens(db, subject_key, tokens_used)
+            return _ai_json_response({"conflict": decision["message"]}, anon_id)
+
+        # ambiguous "make it for N" must not silently no op
+        if _ambiguous_make_for_n(body.message):
+            add_tokens(db, subject_key, tokens_used)
+            return _ai_json_response({"conflict": _MSG_MORE_SPECIFIC}, anon_id)
+
+        # classify tokens are not committed yet
+        # block modify if they would exhaust the day
+        if get_tokens_used(db, subject_key) + tokens_used >= DAILY_TOKEN_LIMIT:
+            add_tokens(db, subject_key, tokens_used)
+            raise HTTPException(status_code=429, detail=LIMIT_MESSAGE)
 
         prompt = build_modify_prompt(
             name,
             ings_text,
             dirs_text,
-            request.message,
+            body.message,
             total_time=total_time,
             servings=servings,
             nutrition=nutrition,
         )
-        result = _call_openai(prompt)
-        return _attach_metadata(
+        result, modify_tokens = _call_openai(prompt)
+        tokens_used += modify_tokens
+        add_tokens(db, subject_key, tokens_used)
+        payload = _attach_metadata(
             result,
             recipe,
             is_modify=True,
             baseline=baseline,
-            message=request.message,
+            message=body.message,
         )
+        return _ai_json_response(payload, anon_id)
+    except HTTPException:
+        raise
     except json.JSONDecodeError as e:
         raise HTTPException(status_code=500, detail=f"Failed to parse AI response: {str(e)}")
     except openai.OpenAIError as e:
