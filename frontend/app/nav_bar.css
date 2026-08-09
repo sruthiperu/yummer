@@ -48,7 +48,10 @@
   font-size: 26px;
   color: rgb(30, 180, 225);
   text-decoration: none;
+  border: none;
+  background: transparent;
   border-radius: 12px;
+  cursor: pointer;
   transition: color 0.2s, background 0.2s, transform 0.2s;
 }
 
@@ -56,4 +59,77 @@
   color: rgb(0, 128, 171);
   background: rgba(30, 180, 225, 0.1);
   transform: translateY(-1px);
+}
+
+.nav_auth {
+  position: relative;
+}
+
+.nav_auth_menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 240px;
+  padding: 8px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid rgba(30, 180, 225, 0.2);
+  box-shadow: 0 10px 28px rgba(20, 40, 60, 0.12);
+  backdrop-filter: blur(10px);
+  z-index: 120;
+}
+
+.nav_auth_status {
+  margin: 0;
+  padding: 8px 10px 6px;
+  font-size: 12px;
+  color: rgb(110, 120, 130);
+}
+
+.nav_auth_user {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 10px 10px;
+  border-bottom: 1px solid rgba(30, 180, 225, 0.12);
+  margin-bottom: 6px;
+}
+
+.nav_auth_name {
+  font-size: 14px;
+  font-weight: 600;
+  color: rgb(40, 50, 60);
+}
+
+.nav_auth_email {
+  font-size: 12px;
+  color: rgb(110, 120, 130);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nav_auth_item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 10px;
+  color: rgb(45, 55, 65);
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background 0.15s, color 0.15s;
+}
+
+.nav_auth_item i {
+  width: 1.1em;
+  text-align: center;
+  color: rgb(30, 180, 225);
+}
+
+.nav_auth_item:hover {
+  background: rgba(30, 180, 225, 0.1);
+  color: rgb(8, 146, 192);
 }

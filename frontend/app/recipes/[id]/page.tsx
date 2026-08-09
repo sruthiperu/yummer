@@ -410,8 +410,12 @@ export default function RecipePage() {
                             </button>
                         </div>
                         <p className="ai_disclaimer">
-                            <i className="fa-solid fa-triangle-exclamation"></i> This recipe was modified by AI. Recipes may occasionally be misleading; please review carefully before cooking.
+                            <i className="fa-solid fa-triangle-exclamation"></i> 
+                            This recipe was modified by AI. Recipes may occasionally be misleading; please review carefully before cooking.
                         </p>
+                        <a className="report_issue" href="mailto:sruthiperumalla1107@gmail.com">
+                            Report an issue
+                        </a>
                     </>
                 )}
             </section>

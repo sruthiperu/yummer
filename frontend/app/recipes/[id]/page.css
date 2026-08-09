@@ -320,7 +320,7 @@
 }
 
 .ai_disclaimer {
-  margin: 10px 0 0;
+  margin: 10px 0 10px;
   color: rgb(95, 95, 95);
   font-size: 13.5px;
   line-height: 1.45;
@@ -328,6 +328,24 @@
 .fa-triangle-exclamation {
   color: rgb(217, 14, 14);
   font-size: 14px;
+}
+
+.report_issue {
+  position: absolute;
+  bottom: 24px;
+  right: 22px;
+  font-size: 12.5px;
+  color: rgb(90, 90, 90);
+  text-decoration: underline;
+  line-height: 1.25rem;
+}
+
+.report_issue:hover {
+  color: rgb(217, 14, 14);
+}
+
+.chatbox:has(.report_issue) {
+  padding-bottom: 40px;
 }
 
 .restore_btn {

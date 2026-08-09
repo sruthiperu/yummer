@@ -1,5 +1,6 @@
 "use client"
 
+import {Suspense} from "react"
 import {Providers} from "./providers"
 import "./globals.css"
 import Navbar from "./nav_bar"
@@ -22,7 +23,9 @@ export default function RootLayout({
       </head>
       <body>
         <Providers>
-          <Navbar />
+          <Suspense fallback={<nav className="navbar" aria-hidden="true" />}>
+            <Navbar />
+          </Suspense>
           <div className="app_content">{children}</div>
         </Providers>
       </body>

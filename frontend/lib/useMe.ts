@@ -12,7 +12,17 @@ export type User = {
 }
 
 export function useMe() {
-  // staleTime: 1000 * 60 * 5 -> 5 minutes
-  return useQuery<User>({queryKey: ["me"], queryFn: () => getMe(), retry: false, staleTime: 300000})
+  return useQuery<User | null>({
+    queryKey: ["me"],
+    queryFn: async () => {
+      try {
+        return await getMe()
+      } catch {
+        return null
+      }
+    },
+    retry: false,
+    staleTime: 300000,
+  })
 }
 
