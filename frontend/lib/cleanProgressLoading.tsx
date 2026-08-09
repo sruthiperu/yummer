@@ -10,7 +10,7 @@ const STEPS = [
   "Putting it all together",
 ] as const
 
-const STEP_MS = 3000
+const STEP_MS = 2000
 
 export default function CleanProgressLoading() {
   const [stepIndex, setStepIndex] = useState(0)

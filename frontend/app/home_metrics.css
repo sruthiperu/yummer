@@ -110,7 +110,7 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transform: scale(1.18);
+    transform: scale(1.05) translateY(-15px);
 }
 
 .home_metrics_video, .home_ai_video {
