@@ -53,7 +53,7 @@ export default function HomePage() {
       if (i < title.length) {
         setTitleText(title.slice(0, i + 1))
         i++
-        schedule(typeTitle, 36)
+        schedule(typeTitle, 24)
       } else {
         setTitleDone(true)
         schedule(() => {
@@ -67,7 +67,7 @@ export default function HomePage() {
       if (j < subtitle.length) {
         setSubText(subtitle.slice(0, j + 1))
         j++
-        schedule(typeSub, 32)
+        schedule(typeSub, 22)
       } else {
         setSubDone(true)
         schedule(() => {
