@@ -36,7 +36,18 @@ export default function Navbar() {
   return (
     <nav className="navbar">
       <div className="nav_cont">
-        <Link href="/" className="nav_logo">yummers</Link>
+        <Link
+          href="/"
+          className="nav_logo"
+          onClick={(e) => {
+            if (pathname === "/") {
+              e.preventDefault()
+              window.scrollTo({top: 0, behavior: "smooth"})
+            }
+          }}
+        >
+          yummers
+        </Link>
 
         <div className="nav_auth" ref={menuRef}>
           <button
