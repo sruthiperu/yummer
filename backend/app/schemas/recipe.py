@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 
 from datetime import datetime
+from typing import Optional
 
 
 class IngredientResponse(BaseModel):
@@ -39,3 +40,15 @@ class RecipeResponse(BaseModel):
     link: str | None
     class Config:
         from_attributes = True
+
+
+class RecipeBatchItem(BaseModel):
+    id: int
+    name: str
+    total_time: Optional[int] = None
+    nutrition: Optional[dict] = None
+    tags: Optional[list] = None
+    rating: Optional[float] = None
+    num_ratings: Optional[int] = None
+    image: Optional[str] = None
+    link: Optional[str] = None

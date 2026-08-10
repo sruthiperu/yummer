@@ -4,18 +4,10 @@ import {useState, useEffect} from "react"
 import SearchBar from "./search_bar"
 import HomeCarousel from "./home_carousel"
 import HomeMetrics from "./home_metrics"
-import {searchRecipes} from "@/lib/api"
+import {getRecipesByIds} from "@/lib/api"
+import {HOME_CAROUSELS} from "@/lib/home_carousels"
 import type {Recipe} from "@/types/recipe"
 import "./home.css"
-
-const CAROUSEL_LIMIT = 12
-
-function withoutPlantBased(recipes: Recipe[]): Recipe[] {
-  return recipes.filter((r) => {
-    const tags = (r.tags || []).map((t) => t.toLowerCase())
-    return !tags.includes("vegetarian") && !tags.includes("vegan")
-  })
-}
 
 export default function HomePage() {
   const title_before = "Find your next "
@@ -93,22 +85,21 @@ export default function HomePage() {
     }
   }, [])
 
-  // carousel data
   useEffect(() => {
     let cancelled = false
 
     async function loadCarousels() {
       setCarouselsLoading(true)
       try {
-        const [meatRes, vegRes, ketoRes] = await Promise.all([
-          searchRecipes("chicken", {tags: "main-course"}),
-          searchRecipes("dinner", {tags: "vegetarian"}),
-          searchRecipes("dinner", {tags: "keto"}),
+        const [meat, veg, keto] = await Promise.all([
+          getRecipesByIds(HOME_CAROUSELS.meat.ids),
+          getRecipesByIds(HOME_CAROUSELS.vegetarian.ids),
+          getRecipesByIds(HOME_CAROUSELS.keto.ids),
         ])
         if (cancelled) return
-        setMeatRecipes(withoutPlantBased(meatRes.results || []).slice(0, CAROUSEL_LIMIT))
-        setVegRecipes((vegRes.results || []).slice(0, CAROUSEL_LIMIT))
-        setKetoRecipes((ketoRes.results || []).slice(0, CAROUSEL_LIMIT))
+        setMeatRecipes(meat)
+        setVegRecipes(veg)
+        setKetoRecipes(keto)
       } catch {
         if (!cancelled) {
           setMeatRecipes([])
@@ -169,25 +160,25 @@ export default function HomePage() {
       <div className="home_discover">
         <div className="home_carousels">
           <HomeCarousel
-            title="Meat Lovers"
+            title={HOME_CAROUSELS.meat.title}
             recipes={meatRecipes}
             loading={carouselsLoading}
             direction="left"
-            durationSec={58}
+            durationSec={55}
           />
           <HomeCarousel
-            title="Vegetarian"
+            title={HOME_CAROUSELS.vegetarian.title}
             recipes={vegRecipes}
             loading={carouselsLoading}
             direction="right"
-            durationSec={64}
+            durationSec={55}
           />
           <HomeCarousel
-            title="Keto"
+            title={HOME_CAROUSELS.keto.title}
             recipes={ketoRecipes}
             loading={carouselsLoading}
             direction="left"
-            durationSec={52}
+            durationSec={55}
           />
         </div>
       </div>
@@ -231,4 +222,3 @@ export default function HomePage() {
     </div>
   )
 }
-

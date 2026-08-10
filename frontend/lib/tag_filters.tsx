@@ -10,12 +10,13 @@ type CuratedTagFiltersProps = {
   onMaxTimeChange?: (minutes: number | undefined) => void
   maxCalories?: number
   onMaxCaloriesChange?: (calories: number | undefined) => void
+  onClearAll?: () => void
 }
 
 const DIETARY_TAGS: CuratedTag[] = ["protein", "vegetarian", "vegan", "gluten-free", "keto"]
 const MEAL_TAGS: CuratedTag[] = ["main-course", "side-dish"]
 
-export default function CuratedTagFilters({selected, onChange, maxTime, onMaxTimeChange, maxCalories, onMaxCaloriesChange}: CuratedTagFiltersProps) {
+export default function CuratedTagFilters({selected, onChange, maxTime, onMaxTimeChange, maxCalories, onMaxCaloriesChange, onClearAll}: CuratedTagFiltersProps) {
   
   const toggle = (tag: string) => {
     if (selected.includes(tag)) {
@@ -26,6 +27,10 @@ export default function CuratedTagFilters({selected, onChange, maxTime, onMaxTim
   }
 
   const clearAll = () => {
+    if (onClearAll) {
+      onClearAll()
+      return
+    }
     onChange([])
     onMaxTimeChange?.(undefined)
     onMaxCaloriesChange?.(undefined)

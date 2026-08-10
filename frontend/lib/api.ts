@@ -32,6 +32,15 @@ async function fetchJSON<T>(url: string, options?: RequestInit): Promise<T> {
 export async function getRecipe(id: number): Promise<Recipe> {
   return fetchJSON(`${API_URL}/recipes/${id}`)
 }
+
+// fetch recipes by ID
+export async function getRecipesByIds(ids: readonly number[]): Promise<Recipe[]> {
+  if (!ids.length) return []
+  const searchParams = new URLSearchParams()
+  searchParams.set("ids", ids.join(","))
+  return fetchJSON(`${API_URL}/recipes/batch?${searchParams.toString()}`)
+}
+
 export async function modifyRecipe(id: number, message: string) {
   return fetchJSON(`${API_URL}/recipes/${id}/modify`, {
     method: "POST",

@@ -4,7 +4,7 @@ import json
 import re
 import openai
 from pydantic import BaseModel
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
@@ -13,7 +13,7 @@ from app.auth import get_optional_user_id
 from app.config import settings
 from app.database import get_db
 from app.models.recipe import Recipe, RecipeIngredient, Ingredient
-from app.schemas.recipe import RecipeResponse
+from app.schemas.recipe import RecipeResponse, RecipeBatchItem
 from app.token_limits import (
     DAILY_TOKEN_LIMIT,
     LIMIT_MESSAGE,
@@ -249,6 +249,58 @@ def _ambiguous_make_for_n(message: str) -> bool:
     if re.search(r"\b(servings?|people|persons?|guests|portions?)\b", text, re.IGNORECASE):
         return False
     return True
+
+
+@router.get("/batch", response_model=list[RecipeBatchItem])
+def get_recipes_batch(
+    ids: str = Query(..., description="Comma-separated recipe IDs"),
+    db: Session = Depends(get_db),
+):
+    """
+    Fetch recipes by ID for home carousels. Preserves request order; skips missing IDs.
+    """
+    parsed: list[int] = []
+    seen: set[int] = set()
+    for part in ids.split(","):
+        part = part.strip()
+        if not part:
+            continue
+        try:
+            rid = int(part)
+        except ValueError:
+            continue
+        if rid in seen:
+            continue
+        seen.add(rid)
+        parsed.append(rid)
+        if len(parsed) >= 50:
+            break
+
+    if not parsed:
+        return []
+
+    rows = db.query(Recipe).filter(Recipe.id.in_(parsed)).all()
+    by_id = {r.id: r for r in rows}
+
+    results: list[RecipeBatchItem] = []
+    for rid in parsed:
+        recipe = by_id.get(rid)
+        if not recipe:
+            continue
+        results.append(
+            RecipeBatchItem(
+                id=recipe.id,
+                name=recipe.name,
+                total_time=recipe.total_time,
+                nutrition=recipe.nutrition,
+                tags=recipe.tags,
+                rating=float(recipe.rating) if recipe.rating is not None else None,
+                num_ratings=recipe.num_ratings,
+                image=recipe.image,
+                link=recipe.link,
+            )
+        )
+    return results
 
 
 @router.get("/{recipe_id}", response_model=RecipeResponse)

@@ -1,7 +1,6 @@
 "use client"
 
 import {useSearchParams, useRouter} from "next/navigation"
-import {useState} from "react"
 import {useSearch} from "@/lib/useSearch"
 
 import RecipeCard from "../recipe_card"
@@ -10,6 +9,11 @@ import CuratedTagFilters from "@/lib/tag_filters"
 import "./search.css"
 import LoadingAnimation from "@/lib/loadingAnimation";
 
+function parseOptionalInt(value: string | null): number | undefined {
+    if (!value) return undefined
+    const n = Number(value)
+    return Number.isFinite(n) && n > 0 ? n : undefined
+}
 
 export default function SearchPage() {
     
@@ -19,9 +23,8 @@ export default function SearchPage() {
     const query = searchParams.get("q") || ""
     const tagsParam = searchParams.get("tags") || ""
     const selectedTags = tagsParam ? tagsParam.split(",") : []
-    
-    const [maxTime, setMaxTime] = useState<number | undefined>()
-    const [maxCalories, setMaxCalories] = useState<number | undefined>()
+    const maxTime = parseOptionalInt(searchParams.get("max_time"))
+    const maxCalories = parseOptionalInt(searchParams.get("max_calories"))
     
     const page = Number(searchParams.get("page") || 1)
     const {data, isFetching, isError} = useSearch(query, {
@@ -32,14 +35,42 @@ export default function SearchPage() {
 
     const showLoading = isFetching && !data
 
-    const handleTagsChange = (newTags: string[]) => {
-        const params = new URLSearchParams()
-        params.set("q", query)
-        if (newTags.length > 0) {
-            params.set("tags", newTags.join(","))
-        }
+    function pushParams(mutate: (params: URLSearchParams) => void) {
+        const params = new URLSearchParams(searchParams.toString())
+        mutate(params)
         params.set("page", "1")
         router.push(`/search?${params.toString()}`)
+    }
+
+    const handleTagsChange = (newTags: string[]) => {
+        pushParams((params) => {
+            params.set("q", query)
+            if (newTags.length > 0) params.set("tags", newTags.join(","))
+            else params.delete("tags")
+        })
+    }
+
+    const handleMaxTimeChange = (minutes: number | undefined) => {
+        pushParams((params) => {
+            if (minutes != null) params.set("max_time", String(minutes))
+            else params.delete("max_time")
+        })
+    }
+
+    const handleMaxCaloriesChange = (calories: number | undefined) => {
+        pushParams((params) => {
+            if (calories != null) params.set("max_calories", String(calories))
+            else params.delete("max_calories")
+        })
+    }
+
+    const handleClearAll = () => {
+        pushParams((params) => {
+            params.set("q", query)
+            params.delete("tags")
+            params.delete("max_time")
+            params.delete("max_calories")
+        })
     }
 
     return (
@@ -53,9 +84,10 @@ export default function SearchPage() {
                     selected={selectedTags} 
                     onChange={handleTagsChange}
                     maxTime={maxTime}
-                    onMaxTimeChange={setMaxTime}
+                    onMaxTimeChange={handleMaxTimeChange}
                     maxCalories={maxCalories}
-                    onMaxCaloriesChange={setMaxCalories}
+                    onMaxCaloriesChange={handleMaxCaloriesChange}
+                    onClearAll={handleClearAll}
                 />
                 
                 {/* right: recipe grid */}

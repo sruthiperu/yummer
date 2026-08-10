@@ -1,8 +1,8 @@
 "use client"
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import './page.css'
-import {useParams, useSearchParams} from "next/navigation"
+import {useParams, useSearchParams, useRouter} from "next/navigation"
 import {useRecipe} from "@/lib/useRecipe"
 import {ingredientTypeClass, INGREDIENT_LEGEND} from "@/lib/ingredientColors"
 import {displayAllergens, allergenContainsText, ALLERGEN_LEGEND} from "@/lib/allergenIcons"
@@ -177,6 +177,7 @@ function IngredientTile({
 export default function RecipePage() {
     const params = useParams()
     const searchParams = useSearchParams();
+    const router = useRouter()
     const id = Number(params.id)
     const {data: recipe, isLoading, isError} = useRecipe(id)
     const [message, setMessage] = useState("")     /* user types in input box */
@@ -186,22 +187,77 @@ export default function RecipePage() {
     const [modifyLoading, setModifyLoading] = useState(false)
     const [cleanLoading, setCleanLoading] = useState(false)
     const [cleanError, setCleanError] = useState("")
+    const [cleanCancelled, setCleanCancelled] = useState(false)
     const [aiError, setAiError] = useState("")
     const [showFoodTypes, setShowFoodTypes] = useState(false)
     const [showDietary, setShowDietary] = useState(false)
+    const cleanAbortRef = useRef<AbortController | null>(null)
 
     const shouldClean = searchParams.get("cleaned") === "1";
 
+    function handleCancelClean() {
+        setCleanCancelled(true)
+        cleanAbortRef.current?.abort()
+        cleanAbortRef.current = null
+        setCleanLoading(false)
+        router.back()
+    }
+
+    async function handleClean() {
+        cleanAbortRef.current?.abort()
+        const controller = new AbortController()
+        cleanAbortRef.current = controller
+
+        setCleanCancelled(false)
+        setCleanLoading(true)
+        setCleanError("")
+        setAiError("")
+        try {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/recipes/${id}/clean`, {
+                method: "POST",
+                credentials: "include",
+                signal: controller.signal,
+            })
+            if (controller.signal.aborted) return
+
+            const data = await response.json().catch(() => ({}))
+            if (controller.signal.aborted) return
+
+            if (!response.ok) {
+                const detail = typeof data?.detail === "string" ? data.detail : null
+                setCleanError(detail || (response.status === 429
+                    ? "Sorry! You've reached your token limit for the day. Check back in tomorrow!"
+                    : "AI Error"))
+                return
+            }
+            setCleanError("")
+            setModifiedRecipe(data)
+            setBaselineRecipe(data)
+            setWasCleaned(true)
+        } catch (err) {
+            if (err instanceof DOMException && err.name === "AbortError") return
+            if (controller.signal.aborted) return
+            setCleanError("AI Error")
+        } finally {
+            if (cleanAbortRef.current === controller) {
+                cleanAbortRef.current = null
+            }
+            if (!controller.signal.aborted) {
+                setCleanLoading(false)
+            }
+        }
+    }
+
     useEffect(() => {
-        if (shouldClean && recipe && !modifiedRecipe && !cleanError) {
+        if (shouldClean && recipe && !modifiedRecipe && !cleanError && !cleanCancelled) {
             handleClean();
         }
-    }, [shouldClean, recipe, modifiedRecipe, cleanError]);
+    }, [shouldClean, recipe, modifiedRecipe, cleanError, cleanCancelled]);
 
     if (cleanLoading) {
         return (
             <div className="ai_loading_overlay">
-                <CleanProgressLoading />
+                <CleanProgressLoading onCancel={handleCancelClean} />
             </div>
         );
     }
@@ -296,34 +352,6 @@ export default function RecipePage() {
             setAiError("AI Error")
         } finally {
             setModifyLoading(false)
-        }
-    }
-
-    async function handleClean() {
-        setCleanLoading(true);
-        setCleanError("");
-        setAiError("");
-        try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/recipes/${id}/clean`, {
-                method: "POST",
-                credentials: "include",
-            });
-            const data = await response.json().catch(() => ({}));
-            if (!response.ok) {
-                const detail = typeof data?.detail === "string" ? data.detail : null;
-                setCleanError(detail || (response.status === 429
-                    ? "Sorry! You've reached your token limit for the day. Check back in tomorrow!"
-                    : "AI Error"));
-                return;
-            }
-            setCleanError("");
-            setModifiedRecipe(data);
-            setBaselineRecipe(data);
-            setWasCleaned(true);
-        } catch (err) {
-            setCleanError("AI Error");
-        } finally {
-            setCleanLoading(false);
         }
     }
 

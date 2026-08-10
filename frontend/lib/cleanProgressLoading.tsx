@@ -12,7 +12,11 @@ const STEPS = [
 
 const STEP_MS = 2000
 
-export default function CleanProgressLoading() {
+type CleanProgressLoadingProps = {
+  onCancel?: () => void
+}
+
+export default function CleanProgressLoading({onCancel}: CleanProgressLoadingProps) {
   const [stepIndex, setStepIndex] = useState(0)
 
   useEffect(() => {
@@ -37,6 +41,11 @@ export default function CleanProgressLoading() {
           />
         ))}
       </div>
+      {onCancel && (
+        <button type="button" className="clean_progress_cancel" onClick={onCancel}>
+          <i className="fa-regular fa-circle-xmark"></i>
+        </button>
+      )}
     </div>
   )
 }

@@ -10,7 +10,7 @@ type MetricItem = {
 }
 
 const METRICS: MetricItem[] = [
-  {target: 225_000, heading: "Browse", label: "recipes"},
+  {target: 224_000, heading: "Browse", label: "recipes"},
   {target: 30_000, heading: "Search", label: "ingredients"},
 ]
 

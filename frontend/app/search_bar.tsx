@@ -1,7 +1,7 @@
 "use client"
 
 import {useState, SyntheticEvent, useEffect} from "react"
-import {useRouter} from "next/navigation"
+import {useRouter, useSearchParams} from "next/navigation"
 import "./search_bar.css"
 
 type SearchBarProps = {
@@ -9,20 +9,33 @@ type SearchBarProps = {
   placeholder?: string
 }
 
+const FILTER_KEYS = ["tags", "max_time", "max_calories"] as const
+
 export default function SearchBar({defaultValue = "", placeholder = "chicken, pasta, broccoli, ..."}: SearchBarProps) {
   const [q, setQ] = useState(defaultValue)
   const router = useRouter()
+  const searchParams = useSearchParams()
 
   useEffect(() => {setQ(defaultValue)}, [defaultValue])
 
   function handleSearch(e: SyntheticEvent<HTMLFormElement>) {
     e.preventDefault()
-    if (q.trim()) {
-      if (q.includes(",")) {
-        router.push(`/search/by-ingredients?ingredients=${encodeURIComponent(q.trim())}`)
-      } else {
-        router.push(`/search?q=${encodeURIComponent(q.trim())}`)
-      }
+    const trimmed = q.trim()
+    if (!trimmed) return
+
+    const params = new URLSearchParams()
+    for (const key of FILTER_KEYS) {
+      const value = searchParams.get(key)
+      if (value) params.set(key, value)
+    }
+    params.set("page", "1")
+
+    if (trimmed.includes(",")) {
+      params.set("ingredients", trimmed)
+      router.push(`/search/by-ingredients?${params.toString()}`)
+    } else {
+      params.set("q", trimmed)
+      router.push(`/search?${params.toString()}`)
     }
   }
 
