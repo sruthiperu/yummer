@@ -3,6 +3,7 @@
 A website that recommends recipes based on the ingredients users have on hand and allows them to customize recipes using AI.
 
 ## Live Site
+https://yummers-lemon.vercel.app/
 
 ## Building from the code
 
@@ -72,7 +73,6 @@ GOOGLE_CLIENT_ID=
 GOOGLE_CLIENT_SECRET=
 JWT_SECRET=
 ```
-Do not commit .env or any other file containing real secrets.
 
 ### 4. Run database migrations
 
@@ -185,7 +185,7 @@ Example environment files
 
 Do not commit .env or any other file containing secrets.
 
-## Contributions and suggestions
+## Contributions
 Contributions and suggestions for improvement are always welcome!
 
 ## Thanks for stopping by!
