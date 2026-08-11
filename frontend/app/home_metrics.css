@@ -116,7 +116,26 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
+    object-position: center center;
     transform: scale(1.2);
+}
+
+@media (max-width: 640px) {
+    /*
+    .home_demo_video {
+        transform: scale(3);
+        transform-origin: center bottom;
+    }
+    */
+    .home_demo_video {
+        width: 101%;
+        height: 104%;
+        max-width: none;
+        max-height: none;
+        object-fit: cover;
+        object-position: center bottom;
+        flex-shrink: 0;
+    }
 }
 
 .home_metrics_video, .home_ai_video {

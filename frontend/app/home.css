@@ -128,8 +128,8 @@ html, body {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center top;
-  transform: scale(1.15) translateY(-15px);
+  object-position: center 28%;
+  transform: scale(1.17) translateY(-8px);
 }
 
 .home_footer {
@@ -287,6 +287,15 @@ html, body {
   .home_metrics_video, .home_ai_video {
     width: 100%;
     max-width: 100%;
+  }
+
+  .home_demo_video {
+    transform: scale(1.06);
+  }
+
+  .home_customize_demo {
+    object-position: center 40%;
+    transform: scale(1.15);
   }
 
   .home_ai {
