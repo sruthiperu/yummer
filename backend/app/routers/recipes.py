@@ -349,7 +349,9 @@ class ModifyRequest(BaseModel):
 
 
 def _build_text(recipe, db):
-    """build ingredient and directions text from DB recipe"""
+    """
+    build ingredient and directions text from DB recipe
+    """
 
     ingredients = (
         db.query(RecipeIngredient, Ingredient)
@@ -375,7 +377,10 @@ def _build_text(recipe, db):
 
 
 def _build_text_from_snapshot(snapshot: dict):
-    """build ingredient and directions text from a client-provided recipe snapshot"""
+    """
+    build ingredient and directions text from a client-provided recipe snapshot
+    """
+
     ings_lines = []
     for ing in snapshot.get("ingredients") or []:
         name = (ing.get("name") or "").strip() or "unknown"
@@ -404,12 +409,15 @@ def _build_text_from_snapshot(snapshot: dict):
     return name, "\n".join(ings_lines), "\n".join(dirs_lines)
 
 
-def _call_openai(prompt: str, max_tokens: int = 2000, temperature: float = 0.3) -> tuple[dict, int]:
-    """Send prompt to OpenAI and return (parsed JSON dict, total_tokens)."""
+def _call_openai(prompt: str, max_tokens: int = 4000, temperature: float = 0.3) -> tuple[dict, int]:
+    """
+    send prompt to OpenAI
+    return (parsed JSON dict, total_tokens)
+    """
 
     client = openai.OpenAI(api_key=settings.openai_api_key)
     response = client.chat.completions.create(
-        model="gpt-4o-mini",
+        model="gpt-4.1-mini",
         messages=[{"role": "user", "content": prompt}],
         temperature=temperature,
         max_tokens=max_tokens,
@@ -427,11 +435,17 @@ def _call_openai(prompt: str, max_tokens: int = 2000, temperature: float = 0.3) 
     if response.usage is not None:
         total_tokens = int(response.usage.total_tokens or 0)
 
+    print("AI RESPONSE LENGTH:", len(content))
+    print("AI RESPONSE END:", content[-500:])
+
     return json.loads(content), total_tokens
 
 
 def _classify_modify_request(message: str, servings) -> tuple[dict, int]:
-    """LLM gate: {action: modify} or {action: clarify, message: ...}."""
+    """
+    LLM gate: {action: modify} or {action: clarify, message: ...}
+    """
+
     prompt = build_clarify_modify_prompt(message, servings=servings)
     result, tokens = _call_openai(prompt, max_tokens=200)
     if not isinstance(result, dict):
@@ -451,7 +465,10 @@ def _ai_json_response(payload: dict, anon_id: str | None = None) -> JSONResponse
 
 
 def _sanitize_directions(directions) -> list:
-    """Drop blank direction rows and renumber step_num per section starting at 1."""
+    """
+    drop blank direction rows and renumber step_num per section starting at 1
+    """
+
     if not isinstance(directions, list):
         return []
 
@@ -475,13 +492,7 @@ def _sanitize_directions(directions) -> list:
     return cleaned
 
 
-def _attach_metadata(
-    ai_result: dict,
-    recipe: Recipe,
-    is_modify: bool,
-    baseline: dict | None = None,
-    message: str = "",
-) -> dict:
+def _attach_metadata(ai_result: dict, recipe: Recipe, is_modify: bool, baseline: dict | None = None, message: str = "") -> dict:
     """merge AI output with original metadata; guard time/servings/nutrition on modify"""
 
     name = ai_result.get("name", recipe.name)

@@ -6,6 +6,7 @@ from uuid import uuid4
 from fastapi import HTTPException, Request, Response
 from sqlalchemy.orm import Session
 from app.models.recipe import DailyTokenUsage
+from app.routers.auth import _cookie_secure
 
 DAILY_TOKEN_LIMIT = 25000
 LIMIT_MESSAGE = "Sorry! You've reached your token limit for the day. Check back in tomorrow!"
@@ -42,6 +43,7 @@ def attach_anon_cookie(response: Response, anon_id: str | None) -> None:
         key=ANON_COOKIE,
         value=anon_id,
         httponly=True,
+        secure=_cookie_secure(),
         samesite="lax",
         path="/",
         max_age=ANON_COOKIE_MAX_AGE,

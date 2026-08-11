@@ -13,8 +13,8 @@ from app.config import settings
 from app.database import get_db
 from app.models.recipe import User
 
-FRONTEND = "http://localhost:3000"
-API_BASE = "http://localhost:8000/api/v1"
+FRONTEND = settings.frontend_url.rstrip("/")
+API_BASE = settings.api_base_url.rstrip("/")
 
 GOOGLE_AUTH = "https://accounts.google.com/o/oauth2/v2/auth"
 GOOGLE_TOKEN = "https://oauth2.googleapis.com/token"
@@ -27,8 +27,18 @@ COOKIE_MAX_AGE = 60 * 60 * 24 * 7
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
+def _cookie_secure() -> bool:
+    if settings.cookie_secure is not None:
+        return settings.cookie_secure
+
+    return settings.frontend_url.startswith("https")
+
+
 def _sanitize_next(next_path: str | None) -> str:
-    """Only allow same-site relative paths (block open redirects)."""
+    """
+    only allow same-site relative paths
+    """
+
     if not next_path:
         return "/"
     path = next_path.strip()
@@ -50,21 +60,21 @@ def _set_auth_cookie(response: RedirectResponse, token: str) -> None:
         httponly=True,
         max_age=COOKIE_MAX_AGE,
         samesite="lax",
+        secure=_cookie_secure(),
         path="/",
     )
 
 
 def _clear_auth_cookie(response: RedirectResponse) -> None:
-    response.delete_cookie(key=COOKIE_NAME, path="/")
+    response.delete_cookie(
+        key=COOKIE_NAME, 
+        path="/",
+        secure=_cookie_secure(),
+        samesite="lax",
+    )
 
 
-def _upsert_user(
-    db: Session,
-    *,
-    provider_user_id: str,
-    email: str,
-    name: str,
-) -> User:
+def _upsert_user(db: Session, *, provider_user_id: str, email: str, name: str) -> User:
     user = (
         db.query(User)
         .filter(
@@ -115,7 +125,10 @@ def _finish_login(user: User, next_path: str | None) -> RedirectResponse:
 
 @router.get("/google")
 def google_login(next: str | None = Query(default="/")):
-    """Redirect user to Google consent screen."""
+    """
+    redirect user to Google consent screen
+    """
+
     if not settings.google_client_id:
         raise HTTPException(status_code=500, detail="Google OAuth is not configured")
 
@@ -133,7 +146,10 @@ def google_login(next: str | None = Query(default="/")):
 
 @router.get("/callback/google")
 def google_callback(request: Request, db: Session = Depends(get_db)):
-    """Complete Google OAuth and set session cookie."""
+    """
+    complete Google OAuth and set session cookie
+    """
+
     error = request.query_params.get("error")
     if error:
         raise HTTPException(status_code=400, detail=f"Google OAuth error: {error}")
@@ -161,10 +177,7 @@ def google_callback(request: Request, db: Session = Depends(get_db)):
     if not access_token:
         raise HTTPException(status_code=400, detail="Google token response missing access_token")
 
-    userinfo_res = httpx.get(
-        GOOGLE_USER_INFO,
-        headers={"Authorization": f"Bearer {access_token}"},
-    )
+    userinfo_res = httpx.get(GOOGLE_USER_INFO, headers={"Authorization": f"Bearer {access_token}"})
     if userinfo_res.status_code != 200:
         raise HTTPException(status_code=400, detail="Failed to get Google user info")
 
@@ -175,18 +188,17 @@ def google_callback(request: Request, db: Session = Depends(get_db)):
     if not provider_user_id:
         raise HTTPException(status_code=400, detail="Google user info missing sub")
 
-    user = _upsert_user(
-        db,
-        provider_user_id=provider_user_id,
-        email=email,
-        name=name,
-    )
+    user = _upsert_user(db, provider_user_id=provider_user_id, email=email, name=name)
+    
     return _finish_login(user, next_path)
 
 
 @router.get("/logout")
 def logout(next: str | None = Query(default="/")):
-    """Clear login cookie and return to the page the user came from."""
+    """
+    clear login cookie and return to the page the user came from
+    """
+
     response = RedirectResponse(url=_frontend_redirect(next))
     _clear_auth_cookie(response)
     return response
