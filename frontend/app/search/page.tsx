@@ -1,6 +1,7 @@
 "use client"
 
 import {useSearchParams, useRouter} from "next/navigation"
+import {Suspense} from "react"
 import {useSearch} from "@/lib/useSearch"
 
 import RecipeCard from "../recipe_card"
@@ -15,7 +16,7 @@ function parseOptionalInt(value: string | null): number | undefined {
     return Number.isFinite(n) && n > 0 ? n : undefined
 }
 
-export default function SearchPage() {
+function SearchPageContent() {
     
     const router = useRouter()
 
@@ -167,5 +168,13 @@ export default function SearchPage() {
             </div>
 
         </main>
+    )
+}
+
+export default function SearchPage() {
+    return (
+        <Suspense fallback={<div />}>
+            <SearchPageContent />
+        </Suspense>
     )
 }

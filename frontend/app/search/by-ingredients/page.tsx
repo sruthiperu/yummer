@@ -1,6 +1,7 @@
 "use client"
 
 import {useSearchParams, useRouter} from "next/navigation"
+import {Suspense} from "react"
 import {useQuery} from "@tanstack/react-query"
 import {searchByIngredients} from "@/lib/api"
 
@@ -16,7 +17,7 @@ function parseOptionalInt(value: string | null): number | undefined {
     return Number.isFinite(n) && n > 0 ? n : undefined
 }
 
-export default function IngredientSearchPage() {
+function IngredientSearchPageContent() {
     
     const router = useRouter()
 
@@ -183,5 +184,13 @@ export default function IngredientSearchPage() {
             </div>
 
         </main>
+    )
+}
+
+export default function IngredientSearchPage() {
+    return (
+        <Suspense fallback={<div />}>
+            <IngredientSearchPageContent />
+        </Suspense>
     )
 }

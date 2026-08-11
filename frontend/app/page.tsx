@@ -1,6 +1,6 @@
 "use client"
 
-import {useState, useEffect} from "react"
+import {Suspense, useState, useEffect} from "react"
 import SearchBar from "./search_bar"
 import HomeCarousel from "./home_carousel"
 import HomeMetrics from "./home_metrics"
@@ -152,7 +152,9 @@ export default function HomePage() {
           </div>
 
           <div id="home-search" className="home_search">
-            <SearchBar placeholder="chicken, pasta, broccoli, ..." />
+            <Suspense fallback={null}>
+              <SearchBar placeholder="chicken, pasta, broccoli, ..." />
+            </Suspense>
           </div>
         </div>
       </main>
