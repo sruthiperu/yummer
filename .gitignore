@@ -12,6 +12,7 @@ build/
 .pytest_cache/
 .mypy_cache/
 backend/alembic/versions/*.pyc
+backend/data
 
 # frontend
 node_modules/
