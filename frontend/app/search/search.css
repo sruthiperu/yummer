@@ -151,3 +151,9 @@
         max-width: 100%;
     }
 }
+
+@media (max-width: 640px) {
+    .search_page {
+        padding: 16px 12px 24px;
+    }
+}

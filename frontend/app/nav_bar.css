@@ -133,3 +133,27 @@
   background: rgba(30, 180, 225, 0.1);
   color: rgb(8, 146, 192);
 }
+
+@media (max-width: 640px) {
+  .navbar {
+    top: 8px;
+    margin: 0 8px 28px;
+  }
+
+  .nav_cont {
+    padding: 2px 6px 2px 4px;
+    border-radius: 14px;
+  }
+
+  .nav_logo {
+    font-size: 22px;
+    padding: 4px 10px;
+  }
+
+  .signin {
+    width: 36px;
+    height: 36px;
+    font-size: 22px;
+    border-radius: 10px;
+  }
+}

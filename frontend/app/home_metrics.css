@@ -13,6 +13,12 @@
     color: rgb(75, 75, 75);
 }
 
+@media (max-width: 640px) {
+    .home_metrics_title {
+        padding: 0 12px;
+    }
+}
+
 .home_metrics_section {
     width: 100%;
     padding: 56px 0;
@@ -110,7 +116,7 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transform: scale(1.17);
+    transform: scale(1.2);
 }
 
 .home_metrics_video, .home_ai_video {

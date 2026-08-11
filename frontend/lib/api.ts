@@ -73,6 +73,7 @@ export async function searchByIngredients(ingredients: string, params: Record<st
   if (params.tags) searchParams.set("tags", params.tags)
   if (params.max_time) searchParams.set("max_time", String(params.max_time))
   if (params.max_calories) searchParams.set("max_calories", String(params.max_calories))
+  if (params.limit) searchParams.set("limit", String(params.limit))
 
   const res = await fetch(`${API_URL}/search/by-ingredients?${searchParams}`)
   return res.json()

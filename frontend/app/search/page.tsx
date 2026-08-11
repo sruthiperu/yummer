@@ -3,6 +3,7 @@
 import {useSearchParams, useRouter} from "next/navigation"
 import {Suspense} from "react"
 import {useSearch} from "@/lib/useSearch"
+import {usePageSize} from "@/lib/usePageSize"
 
 import RecipeCard from "../recipe_card"
 import SearchBar from "../search_bar"
@@ -19,6 +20,7 @@ function parseOptionalInt(value: string | null): number | undefined {
 function SearchPageContent() {
     
     const router = useRouter()
+    const pageSize = usePageSize()
 
     const searchParams = useSearchParams()
     const query = searchParams.get("q") || ""
@@ -31,7 +33,8 @@ function SearchPageContent() {
     const {data, isFetching, isError} = useSearch(query, {
         tags: tagsParam, 
         max_time: maxTime, 
-        max_calories: maxCalories
+        max_calories: maxCalories,
+        limit: pageSize,
     }, page)
 
     const showLoading = isFetching && !data
@@ -133,7 +136,7 @@ function SearchPageContent() {
                                 />))}
                             </div>
                             
-                            {data.total > 20 && (
+                            {data.total > pageSize && (
                                 <div className="page_split">
                                     <button
                                         disabled={page <= 1}
@@ -149,7 +152,7 @@ function SearchPageContent() {
                                     </button>
 
                                     <button
-                                        disabled={page * 20 >= data.total}
+                                        disabled={page * pageSize >= data.total}
                                         onClick={() => {
                                             const params = new URLSearchParams(searchParams.toString())
                                             params.set("page", String(page + 1))

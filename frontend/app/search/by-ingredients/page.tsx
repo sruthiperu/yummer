@@ -4,6 +4,7 @@ import {useSearchParams, useRouter} from "next/navigation"
 import {Suspense} from "react"
 import {useQuery} from "@tanstack/react-query"
 import {searchByIngredients} from "@/lib/api"
+import {usePageSize} from "@/lib/usePageSize"
 
 import RecipeCard from "../../recipe_card"
 import SearchBar from "../../search_bar"
@@ -20,6 +21,7 @@ function parseOptionalInt(value: string | null): number | undefined {
 function IngredientSearchPageContent() {
     
     const router = useRouter()
+    const pageSize = usePageSize()
 
     const searchParams = useSearchParams()
     const ingredients = searchParams.get("ingredients") || ""
@@ -32,12 +34,13 @@ function IngredientSearchPageContent() {
     const page = Number(searchParams.get("page") || 1)
     
     const {data, isFetching, isError} = useQuery({
-        queryKey: ["ingredient-search", ingredients, page, tagsParam, maxTime, maxCalories],
+        queryKey: ["ingredient-search", ingredients, page, tagsParam, maxTime, maxCalories, pageSize],
         queryFn: () => searchByIngredients(ingredients, {
             page, 
             tags: tagsParam,
             max_time: maxTime,
-            max_calories: maxCalories
+            max_calories: maxCalories,
+            limit: pageSize,
         }),
         enabled: ingredients.length >= 2,
         staleTime: 1000 * 60 * 2,
@@ -149,7 +152,7 @@ function IngredientSearchPageContent() {
                                 />))}
                             </div>
                             
-                            {data.total > 20 && (
+                            {data.total > pageSize && (
                                 <div className="page_split">
                                     <button
                                         disabled={page <= 1}
@@ -165,7 +168,7 @@ function IngredientSearchPageContent() {
                                     </button>
 
                                     <button
-                                        disabled={page * 20 >= data.total}
+                                        disabled={page * pageSize >= data.total}
                                         onClick={() => {
                                             const params = new URLSearchParams(searchParams.toString())
                                             params.set("page", String(page + 1))

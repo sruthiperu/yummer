@@ -191,7 +191,23 @@ export default function RecipePage() {
     const [aiError, setAiError] = useState("")
     const [showFoodTypes, setShowFoodTypes] = useState(false)
     const [showDietary, setShowDietary] = useState(false)
+    const [isMobile, setIsMobile] = useState(false)
+    const [foodTypesLegendOpen, setFoodTypesLegendOpen] = useState(true)
+    const [dietaryLegendOpen, setDietaryLegendOpen] = useState(true)
     const cleanAbortRef = useRef<AbortController | null>(null)
+
+    useEffect(() => {
+        const mq = window.matchMedia("(max-width: 640px)")
+        const sync = () => {
+            const mobile = mq.matches
+            setIsMobile(mobile)
+            setFoodTypesLegendOpen(!mobile)
+            setDietaryLegendOpen(!mobile)
+        }
+        sync()
+        mq.addEventListener("change", sync)
+        return () => mq.removeEventListener("change", sync)
+    }, [])
 
     const shouldClean = searchParams.get("cleaned") === "1";
 
@@ -459,12 +475,12 @@ export default function RecipePage() {
                             </button>
                         </div>
                         <p className="ai_disclaimer">
-                            <i className="fa-solid fa-triangle-exclamation"></i> 
-                            This recipe was modified by AI. Recipes may occasionally be misleading; please review carefully before cooking.
+                            <i className="fa-solid fa-triangle-exclamation"></i>{" "}
+                            This recipe was modified by AI. Recipes may occasionally be misleading; please review carefully before cooking.{" "}
+                            <a className="report_issue" href="mailto:sruthiperumalla1107@gmail.com">
+                                Report an issue
+                            </a>
                         </p>
-                        <a className="report_issue" href="mailto:sruthiperumalla1107@gmail.com">
-                            Report an issue
-                        </a>
                     </>
                 )}
             </section>
@@ -499,7 +515,7 @@ export default function RecipePage() {
                     Ingredients <i className="fa-solid fa-carrot" />
                 </h2>
                 <div className="legend_content">
-                    <div className="legend_row">
+                    <div className={`legend_row${!isMobile || foodTypesLegendOpen ? "" : " legend_row--collapsed"}`}>
                         <label className="legend_check">
                             <input
                                 type="checkbox"
@@ -509,13 +525,29 @@ export default function RecipePage() {
                             <span className="legend_check_box" aria-hidden="true" />
                             <span className="legend_check_label">Food types</span>
                         </label>
-                        <div className="ingredient_legend">
-                            {INGREDIENT_LEGEND.map(({ type, label }) => (
-                                <span key={type} className={`legend_item legend_item--${type}`}>{label}</span>
-                            ))}
+                        {isMobile && (
+                            <button
+                                type="button"
+                                className="legend_toggle"
+                                aria-expanded={foodTypesLegendOpen}
+                                aria-label={foodTypesLegendOpen ? "Hide food types legend" : "Show food types legend"}
+                                onClick={() => setFoodTypesLegendOpen((v) => !v)}
+                            >
+                                <i
+                                    className={`fa-solid fa-chevron-down legend_toggle_chevron${foodTypesLegendOpen ? " legend_toggle_chevron--open" : ""}`}
+                                    aria-hidden="true"
+                                />
+                            </button>
+                        )}
+                        <div className="legend_row__body">
+                            <div className="ingredient_legend">
+                                {INGREDIENT_LEGEND.map(({ type, label }) => (
+                                    <span key={type} className={`legend_item legend_item--${type}`}>{label}</span>
+                                ))}
+                            </div>
                         </div>
                     </div>
-                    <div className="legend_row">
+                    <div className={`legend_row${!isMobile || dietaryLegendOpen ? "" : " legend_row--collapsed"}`}>
                         <label className="legend_check">
                             <input
                                 type="checkbox"
@@ -525,21 +557,37 @@ export default function RecipePage() {
                             <span className="legend_check_box" aria-hidden="true" />
                             <span className="legend_check_label">Dietary</span>
                         </label>
-                        <div className="ingredient_icon_legend">
-                            <span className="icon_legend_item">
-                                <span className="allergen_icon icon_legend_icon" aria-hidden="true">
-                                    <span className="material-symbols-outlined">allergies</span>
-                                </span>
-                                {ALLERGEN_LEGEND[0].label}
-                            </span>
-                            {DIETARY_LEGEND.map((d) => (
-                                <span key={d.id} className="icon_legend_item">
-                                    <span className={`dietary_icon dietary_icon--${d.id} icon_legend_icon`} aria-hidden="true">
-                                        <i className={`fa-solid ${d.iconClass}`} />
+                        {isMobile && (
+                            <button
+                                type="button"
+                                className="legend_toggle"
+                                aria-expanded={dietaryLegendOpen}
+                                aria-label={dietaryLegendOpen ? "Hide dietary legend" : "Show dietary legend"}
+                                onClick={() => setDietaryLegendOpen((v) => !v)}
+                            >
+                                <i
+                                    className={`fa-solid fa-chevron-down legend_toggle_chevron${dietaryLegendOpen ? " legend_toggle_chevron--open" : ""}`}
+                                    aria-hidden="true"
+                                />
+                            </button>
+                        )}
+                        <div className="legend_row__body">
+                            <div className="ingredient_icon_legend">
+                                <span className="icon_legend_item">
+                                    <span className="allergen_icon icon_legend_icon" aria-hidden="true">
+                                        <span className="material-symbols-outlined">allergies</span>
                                     </span>
-                                    {d.label}
+                                    {ALLERGEN_LEGEND[0].label}
                                 </span>
-                            ))}
+                                {DIETARY_LEGEND.map((d) => (
+                                    <span key={d.id} className="icon_legend_item">
+                                        <span className={`dietary_icon dietary_icon--${d.id} icon_legend_icon`} aria-hidden="true">
+                                            <i className={`fa-solid ${d.iconClass}`} />
+                                        </span>
+                                        {d.label}
+                                    </span>
+                                ))}
+                            </div>
                         </div>
                     </div>
                 </div>
