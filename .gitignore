@@ -25,6 +25,7 @@ npm-debug.log*
 venv/
 
 postgres_data/
+*.dump
 
 # OS
 .DS_Store
