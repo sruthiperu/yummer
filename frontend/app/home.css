@@ -238,7 +238,7 @@ html, body {
   }
 
   .home_title {
-    font-size: clamp(20px, 5.4vw, 24px);
+    font-size: clamp(24px, 5.6vw, 28px);
     white-space: nowrap;
   }
 
