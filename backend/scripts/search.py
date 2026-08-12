@@ -59,15 +59,10 @@ def _search(db: Session, query: str, filters: dict, page: int = 1, limit: int = 
 def search_by_ingredients(db: Session, ing_names: list[str], filters: dict = None, page: int = 1, limit: int = 20):    # sort="relevance"):
     offset = (page - 1) * limit
 
-    # normalize ingredients
-    # normalized = [name.lower().strip() for name in ingredient_names]
     ing_matches = find_ingredient_ids(db, ing_names)
-    
-    # make list of all ingredient matches
-    matched_ids = []
-    for ids in ing_matches.values():
-        matched_ids.extend(ids)
-    if not matched_ids: return [], 0
+    kept_terms, matched_ids = merge_same_ingredients(ing_names, ing_matches)
+    if not matched_ids:
+        return [], 0, kept_terms
 
     selected_tags = parse_validate_tags(filters.get("tags", "")) if filters else []
     tag_filter = ""
@@ -167,7 +162,7 @@ def search_by_ingredients(db: Session, ing_names: list[str], filters: dict = Non
         LIMIT :limit OFFSET :offset
     """
 
-    scored = db.execute(text(sql), {"ingredient_ids": matched_ids, "user_ingredient_count": len(ing_names), "limit": limit, "offset": offset}).fetchall()
+    scored = db.execute(text(sql), {"ingredient_ids": matched_ids, "user_ingredient_count": len(kept_terms), "limit": limit, "offset": offset}).fetchall()
     
 
     results = []
@@ -180,7 +175,34 @@ def search_by_ingredients(db: Session, ing_names: list[str], filters: dict = Non
                         "total_ingredients": r["total_ingredients"], "user_match_pct": float(r["user_match_pct"]), "recipe_match_pct": float(r["recipe_match_pct"]), 
                         "ingredients": r["ingredients"], "missing_ingredients": missing})
 
-    return results, total
+    return results, total, kept_terms
+
+
+def merge_same_ingredients(ing_names: list[str], ing_matches: dict) -> tuple[list[str], list[int]]:
+    """
+    collapse pantry terms that resolve to the same primary ingredient id
+    keep the first term in order and combine it to its match ids
+    """
+    kept_terms = []
+    matched_ids = []
+    seen_primary = set()
+    seen_ids = set()
+
+    for name in ing_names:
+        ids = ing_matches.get(name) or []
+        if not ids:
+            continue
+        primary_id = ids[0]
+        if primary_id in seen_primary:
+            continue
+        seen_primary.add(primary_id)
+        kept_terms.append(name)
+        for iid in ids:
+            if iid not in seen_ids:
+                seen_ids.add(iid)
+                matched_ids.append(iid)
+
+    return kept_terms, matched_ids
 
 
 def find_ingredient_ids(db: Session, ing_names: list[str]):

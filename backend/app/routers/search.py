@@ -67,12 +67,13 @@ def search_by_ingredients(
 
     filters = {"tags": tags, # "vegan": is_vegan, "vegetarian": is_vegetarian, "gluten_free": is_gluten_free, 
                "max_time": max_time, "max_calories": max_calories}
-    results, total = search_ings(db, ing_list, filters, page, limit) # sort)
-
+    results, total, searched_ings = search_ings(db, ing_list, filters, page, limit)
+    if not searched_ings:
+        searched_ings = ing_list
 
     if total == 0:
-        return {"results": [], "total": 0, "searched_ings": ing_list, "empty_reason": "no_matches",
+        return {"results": [], "total": 0, "searched_ings": searched_ings, "empty_reason": "no_matches",
                 "suggestions": ["Try fewer ingredients", "Check spelling — use simple names like 'chicken' not 'chicken breast'"]}
     else:
-        return {"results": results, "total": total, "page": page, "limit": limit, "searched_ings": ing_list, "empty_reason": None}
+        return {"results": results, "total": total, "page": page, "limit": limit, "searched_ings": searched_ings, "empty_reason": None}
 

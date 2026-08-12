@@ -50,4 +50,5 @@ def clean_ingredients(ings: str):
 
     if not cleaned_ings: return None
 
+    cleaned_ings = list(dict.fromkeys(cleaned_ings))
     return cleaned_ings[:MAX_ING_CNT]

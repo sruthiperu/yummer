@@ -25,7 +25,7 @@ function IngredientSearchPageContent() {
 
     const searchParams = useSearchParams()
     const ingredients = searchParams.get("ingredients") || ""
-    const user_ingredients = ingredients.split(",")
+    const user_ingredients = ingredients.split(",").map((ing) => ing.trim()).filter(Boolean)
     const tagsParam = searchParams.get("tags") || ""
     const selectedTags = tagsParam ? tagsParam.split(",") : []
     const maxTime = parseOptionalInt(searchParams.get("max_time"))
@@ -148,7 +148,7 @@ function IngredientSearchPageContent() {
                                     user_match_pct={recipe.user_match_pct}
                                     missing_ings={recipe.missing_ingredients}
                                     recipe_ings={recipe.ingredients}
-                                    user_ings={user_ingredients}
+                                    user_ings={data.searched_ings ?? user_ingredients}
                                 />))}
                             </div>
                             

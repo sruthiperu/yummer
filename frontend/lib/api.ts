@@ -15,6 +15,7 @@ export type SearchResponse = {
   total: number
   suggestions?: string[]
   empty_reason?: string
+  searched_ings?: string[]
 }
 
 // fetch wrapper
