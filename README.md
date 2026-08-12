@@ -169,11 +169,11 @@ docker compose up db -d
 
 ### 8. Populate the recipe database
 
-The live app contains over 225,000 recipes. The recipe dataset and PostgreSQL database dump are not included in this repository because of their large file sizes.
+The live app contains over 225,000 recipes. Due to their large file sizes, the recipe dataset and PostgreSQL database dump are not included in this repo.
 
-To populate the database locally, I would recommend using a publicly available recipe dataset. For example, you can use a recipe dataset from Kaggle (like I did) or another free data source.
+To populate the database locally, I would recommend using a publicly available recipe dataset -- for example, a recipe dataset from Kaggle (like I did) or another free data source.
 
-The repository includes an import_recipes.py script for importing recipe data into PostgreSQL.
+This repo includes an import_recipes.py script for importing recipe data into PostgreSQL.
 
 Before running import_recipes.py, be sure to update the csv path on line 133 to point to the location of your downloaded dataset.
 
